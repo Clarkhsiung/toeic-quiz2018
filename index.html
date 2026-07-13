@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEIC 多益單字快速刷題系統</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Microsoft JhengHei', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { color: #1b365d; font-size: 24px; margin-bottom: 20px; }
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .word-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2b6cb0;
+            margin: 30px 0;
+            letter-spacing: 0.5px;
+        }
+        .options-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .option-btn:hover {
+            background-color: #ebf8ff;
+            border-color: #bee3f8;
+            color: #2b6cb0;
+        }
+        .option-btn.correct {
+            background-color: #c6f6d5 !important;
+            border-color: #48bb78 !important;
+            color: #22543d !important;
+        }
+        .option-btn.wrong {
+            background-color: #fed7d7 !important;
+            border-color: #f56565 !important;
+            color: #742a2a !important;
+        }
+        .admin-zone {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .admin-btn {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .admin-btn:hover { background-color: #2d3748; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>TOEIC 多益核心單字衝刺</h1>
+    
+    <div class="score-board">
+        <div>已答題數: <span id="total-count">0</span></div>
+        <div>累計錯題庫: <span id="wrong-vocab-count">0</span> 個</div>
+    </div>
+
+    <!-- 當前測試單字 -->
+    <div class="word-display" id="target-word">載入中...</div>
+
+    <!-- 5個選項按鈕 -->
+    <div class="options-zone" id="options-container">
+        <button class="option-btn">選項 1</button>
+        <button class="option-btn">選項 2</button>
+        <button class="option-btn">選項 3</button>
+        <button class="option-btn">選項 4</button>
+        <button class="option-btn">選項 5</button>
+    </div>
+
+    <!-- 後台資料管理（第二階段備用） -->
+    <div class="admin-zone">
+        <button class="admin-btn" onclick="exportWrongData()">匯出錯題數據 (JSON)</button>
+        <button class="admin-btn" style="background-color: #c53030;" onclick="clearTrackingData()">重設所有紀錄</button>
+    </div>
+</div>
+
+<script>
+    let wordList = [];
+    let currentWord = "";
+    let trackingData = JSON.parse(localStorage.getItem('toeic_wrong_track')) || {};
+    let answerClicked = false;
+    let totalAnswered = 0;
+
+    // 初始化：載入單字庫
+    fetch('words_db.json')
+        .then(response => response.json())
+        .then(data => {
+            wordList = data;
+            updateScoreBoard();
+            nextQuestion();
+        })
+        .catch(err => {
+            document.getElementById('target-word').innerText = "請先生成 words_db.json";
+            console.error("無法載入單字庫：", err);
+        });
+
+    // 生成下一題
+    function nextQuestion() {
+        if (wordList.length < 5) return;
+        answerClicked = false;
+        
+        // 1. 隨機選定一個目標單字
+        const targetIndex = Math.floor(Math.random() * wordList.length);
+        currentWord = wordList[targetIndex];
+        document.getElementById('target-word').innerText = currentWord;
+
+        // 2. 隨機抓取 4 個干擾項 (不重複)
+        let distractors = [];
+        while(distractors.length < 4) {
+            let randWord = wordList[Math.floor(Math.random() * wordList.length)];
+            if(randWord !== currentWord && !distractors.includes(randWord)) {
+                distractors.push(randWord);
+            }
+        }
+
+        // 3. 把正確答案與干擾項混合，填入 5 個按鈕
+        let allOptions = [currentWord, ...distractors];
+        // 隨機洗牌演算法
+        allOptions.sort(() => Math.random() - 0.5);
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+
+        allOptions.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = option;
+            btn.onclick = () => handleAnswer(btn, option);
+            container.appendChild(btn);
+        });
+    }
+
+    // 處理點擊答案
+    function handleAnswer(selectedBtn, chosenValue) {
+        if (answerClicked) return; // 防止重複點擊
+        answerClicked = true;
+        totalAnswered++;
+
+        const isCorrect = (chosenValue === currentWord);
+        
+        if (isCorrect) {
+            selectedBtn.classList.add('correct');
+        } else {
+            selectedBtn.classList.add('wrong');
+            
+            // 後台紀錄：錯誤次數累加
+            if (!trackingData[currentWord]) {
+                trackingData[currentWord] = { wrong_count: 0, last_tested: "" };
+            }
+            trackingData[currentWord].wrong_count += 1;
+            trackingData[currentWord].last_tested = new Date().toISOString();
+            
+            // 寫入瀏覽器本地快取保存
+            localStorage.setItem('toeic_wrong_track', JSON.stringify(trackingData));
+            
+            // 同時高亮顯示正確答案給使用者看
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                if (btn.innerText === currentWord) btn.classList.add('correct');
+            });
+        }
+
+        updateScoreBoard();
+
+        // 快速無縫切換：答對0.4秒後跳下一字，答錯留0.9秒看答案後跳下一字
+        setTimeout(nextQuestion, isCorrect ? 400 : 900);
+    }
+
+    // 更新計分板資訊
+    function updateScoreBoard() {
+        document.getElementById('total-count').innerText = totalAnswered;
+        document.getElementById('wrong-vocab-count').innerText = Object.keys(trackingData).length;
+    }
+
+    // 匯出資料功能（提供給第二階段程式串接使用）
+    function exportWrongData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trackingData, null, 4));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "toeic_wrong_tracking_data.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    // 清除資料
+    function clearTrackingData() {
+        if(confirm("確定要重設所有錯題與學習進度紀錄嗎？")) {
+            localStorage.removeItem('toeic_wrong_track');
+            trackingData = {};
+            totalAnswered = 0;
+            updateScoreBoard();
+            nextQuestion();
+        }
+    }
+</script>
+
+</body>
+</html>
