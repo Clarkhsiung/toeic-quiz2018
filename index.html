@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOEIC 多益單字快速刷題系統</title>
+    <title>TOEIC 多益單字全方位衝刺系統</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Microsoft JhengHei', sans-serif;
@@ -26,7 +26,34 @@
             width: 100%;
             text-align: center;
         }
-        h1 { color: #1b365d; font-size: 24px; margin-bottom: 20px; }
+        h1 { color: #1b365d; font-size: 24px; margin-bottom: 15px; }
+        
+        /* 模式切換選單 */
+        .mode-selector {
+            display: flex;
+            background-color: #e2e8f0;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .mode-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #4a5568;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .mode-btn.active {
+            background-color: white;
+            color: #2b6cb0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
         .score-board {
             display: flex;
             justify-content: space-between;
@@ -40,9 +67,17 @@
             font-size: 38px;
             font-weight: bold;
             color: #2b6cb0;
-            margin: 35px 0;
+            margin: 25px 0;
             letter-spacing: 0.5px;
         }
+        .hint-text {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        /* 5選1 模式樣式 */
         .options-zone {
             display: flex;
             flex-direction: column;
@@ -59,21 +94,39 @@
             transition: all 0.2s ease;
             font-weight: 500;
         }
-        .option-btn:hover {
-            background-color: #ebf8ff;
-            border-color: #bee3f8;
-            color: #2b6cb0;
+        .option-btn:hover { background-color: #ebf8ff; border-color: #bee3f8; color: #2b6cb0; }
+        .option-btn.correct { background-color: #c6f6d5 !important; border-color: #48bb78 !important; color: #22543d !important; }
+        .option-btn.wrong { background-color: #fed7d7 !important; border-color: #f56565 !important; color: #742a2a !important; }
+        
+        /* 拼音打字模式樣式 */
+        .typing-zone {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
-        .option-btn.correct {
-            background-color: #c6f6d5 !important;
-            border-color: #48bb78 !important;
-            color: #22543d !important;
+        .typing-input {
+            width: 80%;
+            padding: 12px 16px;
+            font-size: 22px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            outline: none;
+            text-transform: lowercase;
         }
-        .option-btn.wrong {
-            background-color: #fed7d7 !important;
-            border-color: #f56565 !important;
-            color: #742a2a !important;
+        .typing-input:focus { border-color: #3182ce; box-shadow: 0 0 0 3px rgba(66,153,225,0.2); }
+        .typing-input.correct { border-color: #48bb78; background-color: #f0fff4; color: #38a169; }
+        .typing-input.wrong { border-color: #e53e3e; background-color: #fff5f5; color: #e53e3e; animation: shake 0.3s; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
+
         .admin-zone {
             margin-top: 35px;
             display: flex;
@@ -97,22 +150,36 @@
 <body>
 
 <div class="container">
-    <h1>TOEIC 多益雙語核心單字衝刺</h1>
+    <h1>TOEIC 多益雙語單字衝刺系統</h1>
+    
+    <!-- 模式切換選單 -->
+    <div class="mode-selector">
+        <button class="mode-btn active" id="btn-quiz-mode" onclick="switchMode('quiz')">單字閃卡 (5選1)</button>
+        <button class="mode-btn" id="btn-type-mode" onclick="switchMode('type')">拼音打字模式</button>
+    </div>
     
     <div class="score-board">
+        <div>目前模式: <span id="current-mode-text" style="font-weight:bold; color:#2b6cb0;">5選1猜中文</span></div>
         <div>已答題數: <span id="total-count">0</span></div>
-        <div>已累積錯題字數: <span id="wrong-vocab-count">0</span> 個</div>
+        <div>累積錯題字數: <span id="wrong-vocab-count">0</span> 個</div>
     </div>
 
-    <!-- 顯示出題目：英文單字 -->
+    <!-- 核心出題區 -->
     <div class="word-display" id="target-word">載入字庫中...</div>
+    <div class="hint-text" id="hint-display"></div>
 
-    <!-- 顯示出5個中文選項 -->
+    <!-- 模式一：5選1 選項區 -->
     <div class="options-zone" id="options-container">
-        <button class="option-btn">正在載入選項...</button>
+        <button class="option-btn">正在載入...</button>
     </div>
 
-    <!-- 資料庫管理按鈕（供第二階段程式串接） -->
+    <!-- 模式二：拼音打字 輸入區 -->
+    <div class="typing-zone" id="typing-container">
+        <input type="text" class="typing-input" id="word-input" placeholder="請輸入完整的英文單字" autocomplete="off" spellcheck="false">
+        <div id="typing-feedback" style="font-size: 14px; font-weight: bold;"></div>
+    </div>
+
+    <!-- 後台數據管理 -->
     <div class="admin-zone">
         <button class="admin-btn" onclick="exportWrongData()">匯出錯題數據 (JSON)</button>
         <button class="admin-btn" style="background-color: #c53030;" onclick="clearTrackingData()">重設所有紀錄</button>
@@ -120,15 +187,23 @@
 </div>
 
 <script>
-    let wordsData = {};    // 存放主字庫 { "apple": "蘋果", ... }
-    let wordKeys = [];     // 存放純英文單字的陣列 [ "apple", "banana", ... ]
-    let currentWord = "";  // 當前題目的英文
+    let wordsData = {};      // 存放主字庫 { "abandon": "放棄", ... }
+    let wordKeys = [];       // 存放純英文單字的陣列
+    let currentWord = "";    // 當前題目的正確英文
     let correctMeaning = ""; // 當前題目的正確中文
-    let trackingData = JSON.parse(localStorage.getItem('toeic_wrong_track_v2')) || {};
+    let currentMode = "quiz"; // 預設模式：quiz (5選1) 或 type (拼音打字)
+    
+    // 錯題數據結構優化：區分兩種模式的錯題紀錄
+    let trackingData = JSON.parse(localStorage.getItem('toeic_wrong_track_v3')) || { quiz: {}, type: {} };
+    // 相容舊資料防呆機制
+    if (!trackingData.quiz || !trackingData.type) {
+        trackingData = { quiz: {}, type: {} };
+    }
+
     let answerClicked = false;
     let totalAnswered = 0;
 
-    // 1. 從 GitHub 空間中讀取剛產出的中英對照資料庫
+    // 1. 載入中英對照資料庫
     fetch('words_db.json')
         .then(response => response.json())
         .then(data => {
@@ -139,67 +214,90 @@
         })
         .catch(err => {
             document.getElementById('target-word').innerText = "讀取錯誤";
-            console.error("無法正確讀取 words_db.json，請確認檔案是否存在於同目錄中。", err);
+            console.error("無法正確讀取 words_db.json", err);
         });
 
-// 2. 隨機生成下一題（新增欄位自動導正防錯機制）
+    // 2. 切換模式
+    function switchMode(mode) {
+        if(currentMode === mode) return;
+        currentMode = mode;
+        
+        // 更新按鈕樣式
+        document.getElementById('btn-quiz-mode').classList.toggle('active', mode === 'quiz');
+        document.getElementById('btn-type-mode').classList.toggle('active', mode === 'type');
+        
+        // 切換顯示區域
+        document.getElementById('options-container').style.display = (mode === 'quiz') ? 'flex' : 'none';
+        document.getElementById('typing-container').style.display = (mode === 'type') ? 'flex' : 'none';
+        
+        // 重設輸入框狀態
+        const inputField = document.getElementById('word-input');
+        inputField.value = "";
+        inputField.className = "typing-input";
+        document.getElementById('typing-feedback').innerText = "";
+        
+        totalAnswered = 0;
+        updateScoreBoard();
+        nextQuestion();
+    }
+
+    // 3. 生成下一題
     function nextQuestion() {
-        if (wordKeys.length < 5) {
-            alert("字庫單字量不足 5 個，無法建立 5 選 1 測驗。");
-            return;
-        }
+        if (wordKeys.length < 5) return;
         answerClicked = false;
         
-        // 正規表達式：用來檢查字串是否包含純英文
-        const englishRegex = /[a-zA-Z]/;
-
-        let targetKey = "";
-        let targetValue = "";
-
-        // 隨機抽樣，並自動判斷哪一個欄位才是真正的英文
-        const rawIndex = Math.floor(Math.random() * wordKeys.length);
-        const tempKey = wordKeys[rawIndex];
-        const tempValue = wordsData[tempKey];
-
-        // 【核心修正】修正 Excel 欄位顛倒問題：誰有英文，誰就是題目！
-        if (englishRegex.test(tempKey) && !englishRegex.test(tempValue)) {
-            currentWord = tempKey;
-            correctMeaning = tempValue;
-        } else if (englishRegex.test(tempValue) && !englishRegex.test(tempKey)) {
-            currentWord = tempValue;
-            correctMeaning = tempKey;
-        } else {
-            // 如果兩者都是英文或都是數字（例如編號），則直接以 Key 為題目
-            currentWord = tempKey;
-            correctMeaning = tempValue;
-        }
+        // 隨機抽選 1 個英文單字作為正確答案
+        const targetIndex = Math.floor(Math.random() * wordKeys.length);
+        currentWord = wordKeys[targetIndex].trim().toLowerCase();
+        correctMeaning = wordsData[wordKeys[targetIndex]].trim();
         
-        // 渲染題目到畫面上（確保是英文）
-        document.getElementById('target-word').innerText = currentWord;
+        const targetWordElement = document.getElementById('target-word');
+        const hintDisplay = document.getElementById('hint-display');
 
-        // 隨機抓取 4 個其他單字的「中文釋義」作為干擾選項
+        if (currentMode === "quiz") {
+            // 【5選1模式】題目大字顯示英文，提示不顯示
+            targetWordElement.innerText = currentWord;
+            hintDisplay.innerText = "";
+            generateQuizOptions();
+        } else {
+            // 【拼音打字模式】題目大字改顯示「中文意義」
+            targetWordElement.innerText = correctMeaning;
+            
+            // 實作規律：單字字母長度邏輯提示
+            let hintWord = "";
+            const len = currentWord.length;
+            
+            if (len < 6) {
+                // 小於 6 個字母：只給第一位
+                hintWord = currentWord[0] + "_".repeat(len - 1);
+            } else {
+                // 大於等於 6 個字母：給第一位與最後一位
+                hintWord = currentWord[0] + "_".repeat(len - 2) + currentWord[len - 1];
+            }
+            
+            hintDisplay.innerText = `單字長度: ${len} 字元 | 結構提示: ${hintWord}`;
+            
+            // 聚焦到輸入框並清空
+            const inputField = document.getElementById('word-input');
+            inputField.value = "";
+            inputField.className = "typing-input";
+            document.getElementById('typing-feedback').innerText = "";
+            inputField.disabled = false;
+            inputField.focus();
+        }
+    }
+
+    // 4. 建立 5選1 的選項按鈕
+    function generateQuizOptions() {
         let distractorMeanings = [];
         while(distractorMeanings.length < 4) {
             let randKey = wordKeys[Math.floor(Math.random() * wordKeys.length)];
-            let randValue = wordsData[randKey];
-            let wrongMeaning = "";
-
-            // 同步判斷干擾項的中文位置
-            if (englishRegex.test(randKey) && !englishRegex.test(randValue)) {
-                wrongMeaning = randValue;
-            } else if (englishRegex.test(randValue) && !englishRegex.test(randKey)) {
-                wrongMeaning = randKey;
-            } else {
-                wrongMeaning = randValue;
-            }
-            
-            // 避免抓到與正確答案相同，或是重複的中文解釋
-            if(wrongMeaning !== correctMeaning && !distractorMeanings.includes(wrongMeaning)) {
-                distractorMeanings.push(wrongMeaning);
+            let randMeaning = wordsData[randKey].trim();
+            if(randKey.toLowerCase() !== currentWord && randMeaning !== correctMeaning && !distractorMeanings.includes(randMeaning)) {
+                distractorMeanings.push(randMeaning);
             }
         }
 
-        // 把正確答案與 4 個錯誤答案混合，打包成 5 個選項
         let allOptions = [
             { text: correctMeaning, isCorrect: true },
             { text: distractorMeanings[0], isCorrect: false },
@@ -207,26 +305,22 @@
             { text: distractorMeanings[2], isCorrect: false },
             { text: distractorMeanings[3], isCorrect: false }
         ];
-        
-        // 洗牌演算法：隨機打亂 5 個選項的排序
         allOptions.sort(() => Math.random() - 0.5);
 
-        // 渲染選項按鈕到畫面上
         const container = document.getElementById('options-container');
         container.innerHTML = "";
-
         allOptions.forEach(option => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = option.text;
-            btn.onclick = () => handleAnswer(btn, option.isCorrect);
+            btn.onclick = () => handleQuizAnswer(btn, option.isCorrect);
             container.appendChild(btn);
         });
     }
 
-    // 3. 處理點擊選項後的邏輯
-    function handleAnswer(selectedBtn, isCorrect) {
-        if (answerClicked) return; // 鎖定狀態，防止連點造成重複計算
+    // 5. 處理 5選1 點擊結果
+    function handleQuizAnswer(selectedBtn, isCorrect) {
+        if (answerClicked) return;
         answerClicked = true;
         totalAnswered++;
 
@@ -234,60 +328,102 @@
             selectedBtn.classList.add('correct');
         } else {
             selectedBtn.classList.add('wrong');
+            logWrongAnswer('quiz');
             
-            // 後台紀錄：錯誤次數累計與時間戳記更新
-            if (!trackingData[currentWord]) {
-                trackingData[currentWord] = { 
-                    chinese_meaning: correctMeaning,
-                    wrong_count: 0, 
-                    last_tested: "" 
-                };
-            }
-            trackingData[currentWord].wrong_count += 1;
-            trackingData[currentWord].last_tested = new Date().toISOString();
-            
-            // 寫入瀏覽器的本機快取(LocalStorage)，網頁關掉也不會消失
-            localStorage.setItem('toeic_wrong_track_v2', JSON.stringify(trackingData));
-            
-            // 自動高亮顯示正確的中文答案，協助大腦加深記憶
             const buttons = document.querySelectorAll('.option-btn');
             buttons.forEach(btn => {
                 if (btn.innerText === correctMeaning) btn.classList.add('correct');
             });
         }
-
         updateScoreBoard();
-
-        // 極速無縫切換：答對留 0.4 秒，答錯留 1 秒看正確答案，隨後自動跳下一題
-        setTimeout(nextQuestion, isCorrect ? 400 : 1000);
+        setTimeout(nextQuestion, isCorrect ? 400 : 1200);
     }
 
-    // 4. 更新計分板資訊
+    // 6. 監聽拼音輸入框的 Enter 事件
+    document.getElementById('word-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            handleTypingAnswer();
+        }
+    });
+
+    // 7. 處理打字輸入結果
+    function handleTypingAnswer() {
+        if (answerClicked) return;
+        
+        const inputField = document.getElementById('word-input');
+        const userTyped = inputField.value.trim().toLowerCase();
+        
+        if (userTyped === "") return; // 空白不觸發
+        
+        answerClicked = true;
+        totalAnswered++;
+        inputField.disabled = true; // 鎖定輸入
+
+        const isCorrect = (userTyped === currentWord);
+        const feedback = document.getElementById('typing-feedback');
+
+        if (isCorrect) {
+            inputField.classList.add('correct');
+            feedback.innerHTML = `<span style="color:#38a169;">➔ 答對了！太厲害了！</span>`;
+            updateScoreBoard();
+            setTimeout(nextQuestion, 600);
+        } else {
+            inputField.classList.add('wrong');
+            feedback.innerHTML = `<span style="color:#e53e3e;">➔ 答錯了！正確答案是: <strong style="font-size:18px;">${currentWord}</strong></span>`;
+            logWrongAnswer('type');
+            updateScoreBoard();
+            setTimeout(nextQuestion, 1800); // 留較長時間讓使用者看正確拼法
+        }
+    }
+
+    // 8. 統一錯題紀錄邏輯
+    function logWrongAnswer(modeKey) {
+        if (!trackingData[modeKey][currentWord]) {
+            trackingData[modeKey][currentWord] = { 
+                chinese_meaning: correctMeaning,
+                wrong_count: 0, 
+                last_tested: "" 
+            };
+        }
+        trackingData[modeKey][currentWord].wrong_count += 1;
+        trackingData[modeKey][currentWord].last_tested = new Date().toISOString();
+        localStorage.setItem('toeic_wrong_track_v3', JSON.stringify(trackingData));
+    }
+
+    // 9. 更新資訊看板
     function updateScoreBoard() {
         document.getElementById('total-count').innerText = totalAnswered;
-        document.getElementById('wrong-vocab-count').innerText = Object.keys(trackingData).length;
+        
+        if (currentMode === "quiz") {
+            document.getElementById('current-mode-text').innerText = "5選1猜中文";
+            document.getElementById('wrong-vocab-count').innerText = Object.keys(trackingData.quiz).length;
+        } else {
+            document.getElementById('current-mode-text').innerText = "拼音打字模式";
+            document.getElementById('wrong-vocab-count').innerText = Object.keys(trackingData.type).length;
+        }
     }
 
-    // 5. 導出錯題資料功能 (匯出 JSON，為第二階段做準備)
+    // 10. 匯出後台大數據 (包含 quiz 與 type 的各自錯題資訊)
     function exportWrongData() {
-        if (Object.keys(trackingData).length === 0) {
+        const totalWrongs = Object.keys(trackingData.quiz).length + Object.keys(trackingData.type).length;
+        if (totalWrongs === 0) {
             alert("目前尚無任何錯題紀錄喔！");
             return;
         }
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trackingData, null, 4));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "toeic_wrong_tracking_data.json");
+        downloadAnchor.setAttribute("download", "toeic_comprehensive_wrong_data.json");
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
     }
 
-    // 6. 清除快取資料
+    // 11. 重設所有紀錄
     function clearTrackingData() {
-        if(confirm("確定要將所有累積的錯題與練習紀錄清空重來嗎？")) {
-            localStorage.removeItem('toeic_wrong_track_v2');
-            trackingData = {};
+        if(confirm("確定要將【兩種模式】累積的所有錯題與練習紀錄完全清空重來嗎？")) {
+            localStorage.removeItem('toeic_wrong_track_v3');
+            trackingData = { quiz: {}, type: {} };
             totalAnswered = 0;
             updateScoreBoard();
             nextQuestion();
