@@ -142,7 +142,7 @@
             console.error("無法正確讀取 words_db.json，請確認檔案是否存在於同目錄中。", err);
         });
 
-    // 2. 隨機生成下一題
+// 2. 隨機生成下一題（新增欄位自動導正防錯機制）
     function nextQuestion() {
         if (wordKeys.length < 5) {
             alert("字庫單字量不足 5 個，無法建立 5 選 1 測驗。");
@@ -150,23 +150,52 @@
         }
         answerClicked = false;
         
-        // 隨機抽選 1 個英文單字作為正確答案
-        const targetIndex = Math.floor(Math.random() * wordKeys.length);
-        currentWord = wordKeys[targetIndex];
-        correctMeaning = wordsData[currentWord];
+        // 正規表達式：用來檢查字串是否包含純英文
+        const englishRegex = /[a-zA-Z]/;
+
+        let targetKey = "";
+        let targetValue = "";
+
+        // 隨機抽樣，並自動判斷哪一個欄位才是真正的英文
+        const rawIndex = Math.floor(Math.random() * wordKeys.length);
+        const tempKey = wordKeys[rawIndex];
+        const tempValue = wordsData[tempKey];
+
+        // 【核心修正】修正 Excel 欄位顛倒問題：誰有英文，誰就是題目！
+        if (englishRegex.test(tempKey) && !englishRegex.test(tempValue)) {
+            currentWord = tempKey;
+            correctMeaning = tempValue;
+        } else if (englishRegex.test(tempValue) && !englishRegex.test(tempKey)) {
+            currentWord = tempValue;
+            correctMeaning = tempKey;
+        } else {
+            // 如果兩者都是英文或都是數字（例如編號），則直接以 Key 為題目
+            currentWord = tempKey;
+            correctMeaning = tempValue;
+        }
         
-        // 渲染題目到畫面上
+        // 渲染題目到畫面上（確保是英文）
         document.getElementById('target-word').innerText = currentWord;
 
-        // 隨機抓取 4 個其他單字的「中文中文釋義」作為干擾選項
+        // 隨機抓取 4 個其他單字的「中文釋義」作為干擾選項
         let distractorMeanings = [];
         while(distractorMeanings.length < 4) {
             let randKey = wordKeys[Math.floor(Math.random() * wordKeys.length)];
-            let randMeaning = wordsData[randKey];
+            let randValue = wordsData[randKey];
+            let wrongMeaning = "";
+
+            // 同步判斷干擾項的中文位置
+            if (englishRegex.test(randKey) && !englishRegex.test(randValue)) {
+                wrongMeaning = randValue;
+            } else if (englishRegex.test(randValue) && !englishRegex.test(randKey)) {
+                wrongMeaning = randKey;
+            } else {
+                wrongMeaning = randValue;
+            }
             
             // 避免抓到與正確答案相同，或是重複的中文解釋
-            if(randKey !== currentWord && !distractorMeanings.includes(randMeaning)) {
-                distractorMeanings.push(randMeaning);
+            if(wrongMeaning !== correctMeaning && !distractorMeanings.includes(wrongMeaning)) {
+                distractorMeanings.push(wrongMeaning);
             }
         }
 
