@@ -916,55 +916,6 @@
         "sentence_en": "Your brights are on.",
         "sentence_zh": "你的燈亮了。"
     },
-    "dapuo": {
-        "cefr": "B1",
-        "translation": "大埔",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "fenzhi": {
-        "cefr": "B1",
-        "translation": "分治",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "huxi": {
-        "cefr": "A2",
-        "translation": "湖西",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "mianbao": {
-        "cefr": "B2",
-        "translation": "面寶",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "mingliangde": {
-        "cefr": "C2",
-        "translation": "明亮的",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "xiongbu": {
-        "cefr": "B2",
-        "translation": "雄部",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "zaofan": {
-        "cefr": "B1",
-        "translation": "早餐",
-        "page": 33,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "bring": {
         "cefr": "B1",
         "translation": "帶來 ( [動] 產生、促使、帶來、拿來 )",
@@ -3828,69 +3779,6 @@
         "sentence_en": "When we move into the new house, the kids will each have their own bedroom.",
         "sentence_zh": "當我們搬進新房子時，孩子們將每個人都有自己的臥室。"
     },
-    "bao": {
-        "cefr": "A1",
-        "translation": "寶",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "bie": {
-        "cefr": "A1",
-        "translation": "別",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "che": {
-        "cefr": "A1",
-        "translation": "車",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "de": {
-        "cefr": "A1",
-        "translation": "德",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "du": {
-        "cefr": "A1",
-        "translation": "杜",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "guo": {
-        "cefr": "A1",
-        "translation": "郭",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "jian": {
-        "cefr": "A2",
-        "translation": "堅",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "li": {
-        "cefr": "A1",
-        "translation": "李 ( [名] 裡 )",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ling": {
-        "cefr": "A2",
-        "translation": "令",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "pace": {
         "cefr": "A2",
         "translation": "步伐 ( [名] 步、步調、步伐、步子；[動] 步行、緩慢的走、走 )",
@@ -3932,34 +3820,6 @@
         "page": 101,
         "sentence_en": "to part the curtains",
         "sentence_zh": "拉開窗簾"
-    },
-    "shuang": {
-        "cefr": "B1",
-        "translation": "雙",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "su": {
-        "cefr": "A1",
-        "translation": "蘇",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ting": {
-        "cefr": "A2",
-        "translation": "婷",
-        "page": 101,
-        "sentence_en": "When the microwaved food was ready, the bell tinged.",
-        "sentence_zh": "當微波爐加熱的食物準備好時，鈴聲響起。"
-    },
-    "yi": {
-        "cefr": "A1",
-        "translation": "伊",
-        "page": 101,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
     },
     "partner": {
         "cefr": "B2",
@@ -4430,27 +4290,6 @@
         "sentence_en": "Give the door a hard push if it sticks.",
         "sentence_zh": "如果門卡住了，用力推一下。"
     },
-    "di": {
-        "cefr": "A1",
-        "translation": "迪",
-        "page": 112,
-        "sentence_en": "The chorus goes like this: \"di di di di dum, da di da\".",
-        "sentence_zh": "副歌是這樣的：「di di di di dum, da di da」。"
-    },
-    "ku": {
-        "cefr": "A1",
-        "translation": "庫",
-        "page": 112,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ng": {
-        "cefr": "A1",
-        "translation": "吳",
-        "page": 112,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "quality": {
         "cefr": "B2",
         "translation": "品質 ( [名] 成色、品、品質、色；[形] 最高品質的 )",
@@ -4485,13 +4324,6 @@
         "page": 112,
         "sentence_en": "If we go this way, we'll get there quickly.",
         "sentence_zh": "如果我們沿著這條路走，我們很快就能到達那裡。"
-    },
-    "zh": {
-        "cefr": "A1",
-        "translation": "zh",
-        "page": 112,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
     },
     "quiet": {
         "cefr": "B1",
@@ -8297,27 +8129,6 @@
     "am": {
         "cefr": "A1",
         "translation": "是 ( [縮] 上午 )",
-        "page": 204,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ch": {
-        "cefr": "A1",
-        "translation": "ch",
-        "page": 204,
-        "sentence_en": "He wore a gold chain around the neck.",
-        "sentence_zh": "他脖子上戴著一條金鍊子。"
-    },
-    "gu": {
-        "cefr": "A1",
-        "translation": "顧",
-        "page": 204,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ma": {
-        "cefr": "A1",
-        "translation": "馬 ( [名] 媽、嬤、娘；[auxiliary verb] 嗎 )",
         "page": 204,
         "sentence_en": "No example sentence available.",
         "sentence_zh": "暫無例句翻譯。"
@@ -12424,34 +12235,6 @@
         "sentence_en": "No example sentence available.",
         "sentence_zh": "暫無例句翻譯。"
     },
-    "pei": {
-        "cefr": "A1",
-        "translation": "裴",
-        "page": 300,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "shen": {
-        "cefr": "A2",
-        "translation": "沈",
-        "page": 300,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "tuan": {
-        "cefr": "A2",
-        "translation": "團",
-        "page": 300,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "xiao": {
-        "cefr": "A2",
-        "translation": "曉",
-        "page": 300,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "keeper": {
         "cefr": "B1",
         "translation": "守門員 ( [名] 保管人、管理人 )",
@@ -15861,13 +15644,6 @@
         "sentence_en": "I received an illogical reply and that left me standing there feeling confused.",
         "sentence_zh": "我收到了一個不合邏輯的答复，這讓我站在那裡感到困惑。"
     },
-    "iou": {
-        "cefr": "A1",
-        "translation": "欠條 ( [縮] 期票 )",
-        "page": 385,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "illuminate": {
         "cefr": "C1",
         "translation": "照亮 ( [動] 發光、暉映、耀、耀眼 )",
@@ -18003,54 +17779,12 @@
         "sentence_en": "caffeine withdrawal",
         "sentence_zh": "咖啡因戒斷"
     },
-    "chuan": {
-        "cefr": "B1",
-        "translation": "川",
-        "page": 440,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "fan": {
         "cefr": "A1",
         "translation": "扇子 ( [名] 愛好者、風扇、迷、球迷；[動] 簸、扇、煽、搧 )",
         "page": 440,
         "sentence_en": "We enjoyed standing at the edge of the cliff, being fanned by the wind.",
         "sentence_zh": "我們喜歡站在懸崖邊，被風吹著。"
-    },
-    "ke": {
-        "cefr": "A1",
-        "translation": "克",
-        "page": 440,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "nian": {
-        "cefr": "A2",
-        "translation": "年",
-        "page": 440,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "si": {
-        "cefr": "A1",
-        "translation": "斯 ( [名] 絲 )",
-        "page": 440,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "wang": {
-        "cefr": "A2",
-        "translation": "王",
-        "page": 440,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "yacht": {
-        "cefr": "B1",
-        "translation": "遊艇 ( [動] 乘游艇；[名] 帆船、游艇 )",
-        "page": 440,
-        "sentence_en": "Would you like to go sailing on my uncle’s yacht?",
-        "sentence_zh": "你想搭乘我叔叔的遊艇去航行嗎？"
     },
     "yearn": {
         "cefr": "B1",
@@ -18128,20 +17862,6 @@
         "page": 446,
         "sentence_en": "In order to improve his health, Rob decided to abstain from smoking.",
         "sentence_zh": "為了改善健康，羅布決定戒菸。"
-    },
-    "ji": {
-        "cefr": "A1",
-        "translation": "吉",
-        "page": 446,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "sh": {
-        "cefr": "A1",
-        "translation": "噓",
-        "page": 446,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
     },
     "abstraction": {
         "cefr": "C2",
@@ -18286,27 +18006,6 @@
     "allergy": {
         "cefr": "B2",
         "translation": "過敏 ( [名] 變態反應、過敏、過敏症 )",
-        "page": 451,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "be": {
-        "cefr": "A1",
-        "translation": "是 ( [動] 當、居、乃、乃是；[auxiliary verb] 是 )",
-        "page": 451,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "it": {
-        "cefr": "A1",
-        "translation": "它 ( [代] 其、它、牠、之 )",
-        "page": 451,
-        "sentence_en": "In the next game, Adam and Tom will be it…",
-        "sentence_zh": "在下一場比賽中，亞當和湯姆將是…"
-    },
-    "ll": {
-        "cefr": "A1",
-        "translation": "二",
         "page": 451,
         "sentence_en": "No example sentence available.",
         "sentence_zh": "暫無例句翻譯。"
@@ -19172,20 +18871,6 @@
         "sentence_en": "In what context did your attack on him happen? - We had a pretty tense relationship at the time, and when he insulted me I snapped.",
         "sentence_zh": "你是在什麼情況下對他進行攻擊的？ - 當時我們的關係非常緊張，當他侮辱我時，我勃然大怒。"
     },
-    "xi": {
-        "cefr": "A1",
-        "translation": "希",
-        "page": 471,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "yu": {
-        "cefr": "A1",
-        "translation": "於",
-        "page": 471,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "continuity": {
         "cefr": "C1",
         "translation": "連續性",
@@ -19410,27 +19095,6 @@
         "sentence_en": "I have the edge on him.",
         "sentence_zh": "我比他有優勢。"
     },
-    "biao": {
-        "cefr": "A2",
-        "translation": "彪",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "chu": {
-        "cefr": "A1",
-        "translation": "楚",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ci": {
-        "cefr": "A1",
-        "translation": "字",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
     "dashboard": {
         "cefr": "C1",
         "translation": "儀表板 ( [名] 儀錶盤 )",
@@ -19469,118 +19133,6 @@
     "decode": {
         "cefr": "B1",
         "translation": "解碼 ( [動] 解碼、譯 )",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "jie": {
-        "cefr": "A1",
-        "translation": "傑",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "kuang": {
-        "cefr": "B1",
-        "translation": "匡",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "luo": {
-        "cefr": "A1",
-        "translation": "羅",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "pian": {
-        "cefr": "A2",
-        "translation": "片",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "puo": {
-        "cefr": "A1",
-        "translation": "撲",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "qing": {
-        "cefr": "A2",
-        "translation": "慶 ( [名] 頃 )",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "ren": {
-        "cefr": "A1",
-        "translation": "任",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "san": {
-        "cefr": "A1",
-        "translation": "桑",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "shou": {
-        "cefr": "A2",
-        "translation": "受",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "shun": {
-        "cefr": "A2",
-        "translation": "順 ( [動] 避、避諱、避免、躲避 )",
-        "page": 477,
-        "sentence_en": "Acrophobes shun mountaineering.",
-        "sentence_zh": "恐高症患者迴避登山。"
-    },
-    "sui": {
-        "cefr": "A1",
-        "translation": "睢",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "wen": {
-        "cefr": "A1",
-        "translation": "文",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "wu": {
-        "cefr": "A1",
-        "translation": "吳",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "xing": {
-        "cefr": "A2",
-        "translation": "興",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "yan": {
-        "cefr": "A1",
-        "translation": "嚴",
-        "page": 477,
-        "sentence_en": "No example sentence available.",
-        "sentence_zh": "暫無例句翻譯。"
-    },
-    "zhi": {
-        "cefr": "A1",
-        "translation": "至",
         "page": 477,
         "sentence_en": "No example sentence available.",
         "sentence_zh": "暫無例句翻譯。"
