@@ -208,7 +208,6 @@
 <div class="container">
     <h1>TOEIC 多益雙語單字衝刺系統</h1>
     
-    <!-- 導覽切換區：新增第三種模式按鈕 -->
     <div class="mode-selector">
         <button class="mode-btn active" id="btn-quiz-mode" onclick="switchMode('quiz')">單字閃卡 (5選1)</button>
         <button class="mode-btn" id="btn-type-mode" onclick="switchMode('type')">拼音聽寫模式</button>
@@ -230,7 +229,7 @@
     <div class="word-display" id="target-word">載入字庫中...</div>
     <div class="hint-text" id="hint-display"></div>
 
-    <!-- 模式三：例句展示面板 (先前缺少的 UI 區塊) -->
+    <!-- 模式三：例句展示面板 -->
     <div class="sentence-panel" id="sentence-box">
         <div class="sentence-en" id="sentence-text-en">Loading sentence...</div>
         <div class="sentence-zh" id="sentence-text-zh">正在載入翻譯...</div>
@@ -344,27 +343,23 @@
     }
     
     // ============================================================================
-    // 2. 模式切換修正邏輯 (同步更新選單狀態及頂部文字)
+    // 2. 模式切換邏輯
     // ============================================================================
     function switchMode(mode) {
         if (currentMode === mode) return;
         currentMode = mode;
         
-        // 切換按鈕亮起狀態
         document.getElementById('btn-quiz-mode').classList.toggle('active', mode === 'quiz');
         document.getElementById('btn-type-mode').classList.toggle('active', mode === 'type');
         document.getElementById('btn-cloze-mode').classList.toggle('active', mode === 'cloze');
         
-        // 更新頂部文字狀態
         const modeTextMap = { 'quiz': '5選1猜中文', 'type': '拼音聽寫模式', 'cloze': '例句填空模式' };
         document.getElementById('current-mode-text').innerText = modeTextMap[mode];
 
-        // UI 區塊動態顯示控制
         document.getElementById('options-container').style.display = (mode === 'quiz') ? 'flex' : 'none';
         document.getElementById('typing-container').style.display = (mode === 'quiz') ? 'none' : 'flex';
         document.getElementById('sentence-box').style.display = (mode === 'cloze') ? 'block' : 'none';
         
-        // 重設輸入框樣式
         inPenaltyMode = false;
         penaltyCurrentCount = 0;
         
@@ -380,15 +375,38 @@
     }
     
     // ============================================================================
-    // 3. 出題核心與挖空提示演算法
+    // 3. 出題核心與挖空提示演算法（加入第三模式無例句過濾防線）
     // ============================================================================
     function nextQuestion() {
         if (wordsData.length < 5) return;
         answerClicked = false;
         inPenaltyMode = false;
         
-        const randIndex = Math.floor(Math.random() * wordsData.length);
-        currentWordObj = wordsData[randIndex];
+        let selectedWordObj = null;
+
+        if (currentMode === 'cloze') {
+            // 過濾出真正含有有效英文例句的單字池
+            const validClozePool = wordsData.filter(item => 
+                item.sentence_en && 
+                !item.sentence_en.includes("No example") && 
+                item.sentence_en.trim() !== ""
+            );
+
+            // 防呆：若整個字庫全部都沒有例句，退回全字庫隨機
+            if (validClozePool.length > 0) {
+                const randIndex = Math.floor(Math.random() * validClozePool.length);
+                selectedWordObj = validClozePool[randIndex];
+            } else {
+                const randIndex = Math.floor(Math.random() * wordsData.length);
+                selectedWordObj = wordsData[randIndex];
+            }
+        } else {
+            // 模式一與模式二維持全字庫隨機
+            const randIndex = Math.floor(Math.random() * wordsData.length);
+            selectedWordObj = wordsData[randIndex];
+        }
+
+        currentWordObj = selectedWordObj;
         const wordClean = currentWordObj.word.trim().toLowerCase();
         
         const inputField = document.getElementById('word-input');
@@ -405,7 +423,6 @@
             generateQuizOptions();
         } 
         else if (currentMode === 'type') {
-            // 修正：聽寫模式不顯示英文，而是顯示中文意思作為指引
             document.getElementById('target-word').innerText = currentWordObj.translation;
             
             let structureHint = generateWordMask(wordClean);
@@ -417,7 +434,6 @@
             document.getElementById('target-word').innerText = "例句上下文填空";
             document.getElementById('hint-display').innerText = `單字釋義：${currentWordObj.translation} | [${currentWordObj.cefr}]`;
             
-            // 挖空處理
             const escapedWord = wordClean.replace(/[-\/\\^$*+%.?[\]{}()|]/g, '\\$&');
             const regexWord = new RegExp('\\b' + escapedWord + '[a-z]*\\b', 'gi');
             
@@ -434,7 +450,6 @@
     function generateWordMask(word) {
         const len = word.length;
         if (len <= 1) return word;
-        // 6個字母以下(含)只提供字首，大於6個字母提供字首與字尾
         if (len <= 6) {
             return word[0] + "_".repeat(len - 1);
         } else {
@@ -619,7 +634,7 @@
             let percentage = totalCorrectDenominator > 0 ? Math.round((numerator / totalCorrectDenominator) * 100) : 0;
             
             const labelEl = document.getElementById(`cefr-text-${lvl}`);
-            if (labelEl) labelEl.innerText = `${lvl} ${numerator}/${totalCorrectDenominator} ${percentage}%`;
+            if (labelEl) labelEl.getElementById ? null : labelEl.innerText = `${lvl} ${numerator}/${totalCorrectDenominator} ${percentage}%`;
             
             const barEl = document.getElementById(`cefr-bar-${lvl}`);
             if (barEl) barEl.style.width = `${percentage}%`;
