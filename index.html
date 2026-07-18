@@ -230,368 +230,418 @@
 </div>
 
 <script>
-    let wordsData = {};      
-    let wordKeys = [];       
-    let currentWord = "";    
-    let correctMeaning = ""; 
-    let currentWordPage = ""; 
-    let currentMode = "quiz"; 
+    // ============================================================================
+    // TOEIC 多益 3.0 核心狀態管理 (完全相容 GitHub Pages)
+    // ============================================================================
+    let wordsData = [];          // 儲存從 words_db.json 載入的單字陣列
+    let currentWordObj = null;   // 目前出題的單字物件
+    let currentMode = "quiz";    // 目前模式：quiz(5選1), type(單字聽寫/填空), cloze(例句填空)
     
-    let startTime = 0;
-    let totalQuizTime = 0;
-    let quizAnsweredCount = 0;
-
+    // 統計數據：從 localStorage 載入，若無則初始化
+    let statsData = JSON.parse(localStorage.getItem('toeic_v3_stats')) || {
+        totalAnswered: 0,
+        correctPool: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 }
+    };
+    
+    // 錯題追蹤：分流記錄
+    let trackingData = JSON.parse(localStorage.getItem('toeic_v3_wrong_track')) || {
+        quiz: {},
+        type: {},
+        cloze: {}
+    };
+    
+    // 罰寫記憶機制狀態
     let inPenaltyMode = false;
-    let penaltyRequiredCount = 3;
+    const penaltyRequiredCount = 3;
     let penaltyCurrentCount = 0;
-
-    // 錯題追蹤版本升級為 v7
-    let trackingData = JSON.parse(localStorage.getItem('toeic_wrong_track_v7')) || { quiz: {}, type: {} };
-    if (!trackingData.quiz || !trackingData.type) {
-        trackingData = { quiz: {}, type: {} };
-    }
-
     let answerClicked = false;
-    let totalAnswered = 0;
-    let synth = window.speechSynthesis;
-
-    fetch('words_db.json')
-        .then(response => response.json())
-        .then(data => {
-            wordsData = data;
-            wordKeys = Object.keys(data);
-            updateScoreBoard();
-            nextQuestion();
-        })
-        .catch(err => {
-            document.getElementById('target-word').innerText = "讀取錯誤";
-            console.error("無法正確讀取 words_db.json", err);
-        });
-
+    
+    // 語音合成
+    const synth = window.speechSynthesis;
+    
+    // ============================================================================
+    // 1. 初始化與資料載入
+    // ============================================================================
+    document.addEventListener("DOMContentLoaded", () => {
+        // 異步載入包含 CEFR、中文翻譯、中英例句的 3.0 新版單字庫
+        fetch('words_db.json')
+            .then(response => {
+                if (!response.ok) throw new Error("找不到或無法載入 words_db.json");
+                return response.json();
+            })
+            .then(data => {
+                // 兼容處理：支援物件格式 {} 或陣列格式 []
+                wordsData = Array.isArray(data) ? data : Object.entries(data).map(([word, val]) => ({
+                    word: word,
+                    cefr: val.cefr || "B1",
+                    translation: val.meaning || val.translation,
+                    page: val.page || "",
+                    sentence_en: val.sentence_en || (val.examples && val.examples[0] ? val.examples[0].en : "No example available."),
+                    sentence_zh: val.sentence_zh || (val.examples && val.examples[0] ? val.examples[0].zh : "暫無例句翻譯。")
+                }));
+                
+                initEventListeners();
+                updateDashboard();
+                nextQuestion();
+            })
+            .catch(err => {
+                console.error("❌ 系統載入失敗:", err);
+                const target = document.getElementById('target-word');
+                if (target) target.innerText = "字庫載入失敗，請檢查 words_db.json 格式";
+            });
+    });
+    
+    // 監聽鍵盤快捷鍵與輸入事件
+    function initEventListeners() {
+        const wordInput = document.getElementById('word-input');
+        if (wordInput) {
+            wordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleTypingOrClozeAnswer();
+                } else if (e.key === 'Escape' && !inPenaltyMode) {
+                    handleSkipWord();
+                } else if (e.key === 'F2') {
+                    e.preventDefault();
+                    speakText(currentWordObj.word);
+                } else if (e.key === 'F3') {
+                    e.preventDefault();
+                    speakText(currentWordObj.sentence_en);
+                } else if (e.key === 'F4' && !inPenaltyMode) {
+                    e.preventDefault();
+                    handleWhisperError();
+                }
+            });
+        }
+    }
+    
+    // ============================================================================
+    // 2. 模式切換邏輯
+    // ============================================================================
     function switchMode(mode) {
-        if(currentMode === mode) return;
+        if (currentMode === mode) return;
         currentMode = mode;
         
-        document.getElementById('btn-quiz-mode').classList.toggle('active', mode === 'quiz');
-        document.getElementById('btn-type-mode').classList.toggle('active', mode === 'type');
-        
+        // UI 元件顯示/隱藏切換
         document.getElementById('options-container').style.display = (mode === 'quiz') ? 'flex' : 'none';
-        document.getElementById('typing-container').style.display = (mode === 'type') ? 'flex' : 'none';
-        document.getElementById('quiz-timer-display').style.visibility = (mode === 'quiz') ? 'visible' : 'hidden';
+        document.getElementById('typing-container').style.display = (mode === 'quiz') ? 'none' : 'flex';
+        document.getElementById('sentence-box').style.display = (mode === 'cloze') ? 'block' : 'none';
         
+        // 移除罰寫狀態
         inPenaltyMode = false;
         penaltyCurrentCount = 0;
-
+        
+        // 清空輸入框
         const inputField = document.getElementById('word-input');
-        inputField.value = "";
-        inputField.className = "typing-input";
-        document.getElementById('typing-feedback').innerText = "";
-        
-        totalAnswered = 0;
-        updateScoreBoard();
-        nextQuestion();
-    }
-
-    function speakCurrentWord() {
-        if (!currentWord || synth.speaking) synth.cancel();
-        let utterance = new SpeechSynthesisUtterance(currentWord);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        synth.speak(utterance);
-    }
-
-    function nextQuestion() {
-        if (wordKeys.length < 5) return;
-        answerClicked = false;
-        inPenaltyMode = false;
-        penaltyCurrentCount = 0;
-        
-        const targetIndex = Math.floor(Math.random() * wordKeys.length);
-        currentWord = wordKeys[targetIndex].trim().toLowerCase();
-        
-        correctMeaning = wordsData[wordKeys[targetIndex]].meaning.trim();
-        currentWordPage = wordsData[wordKeys[targetIndex]].page;
-        
-        const targetWordElement = document.getElementById('target-word');
-        const hintDisplay = document.getElementById('hint-display');
-
-        if (currentMode === "quiz") {
-            targetWordElement.innerText = currentWord;
-            hintDisplay.innerText = "";
-            generateQuizOptions();
-            startTime = performance.now();
-        } else {
-            targetWordElement.innerText = correctMeaning;
-            
-            let hintWord = "";
-            const len = currentWord.length;
-            if (len < 6) {
-                hintWord = currentWord[0] + "_".repeat(len - 1);
-            } else {
-                hintWord = currentWord[0] + "_".repeat(len - 2) + currentWord[len - 1];
-            }
-            
-            hintDisplay.innerText = `單字長度: ${len} 字元 | 結構提示: ${hintWord}`;
-            
-            const inputField = document.getElementById('word-input');
+        if (inputField) {
             inputField.value = "";
             inputField.className = "typing-input";
-            inputField.placeholder = "請聽語音，輸入完整英文單字";
-            document.getElementById('typing-feedback').innerText = "";
+        }
+        document.getElementById('typing-feedback').innerText = "";
+        
+        nextQuestion();
+    }
+    
+    // ============================================================================
+    // 3. 核心出題與核心挖空演算法 (6字元法則)
+    // ============================================================================
+    function nextQuestion() {
+        if (wordsData.length < 5) return;
+        answerClicked = false;
+        inPenaltyMode = false;
+        
+        // 隨機抽選單字
+        const randIndex = Math.floor(Math.random() * wordsData.length);
+        currentWordObj = wordsData[randIndex];
+        
+        const wordClean = currentWordObj.word.trim().toLowerCase();
+        
+        // 初始化輸入框狀態
+        const inputField = document.getElementById('word-input');
+        if (inputField) {
+            inputField.value = "";
+            inputField.className = "typing-input";
             inputField.disabled = false;
-            document.getElementById('btn-skip-word').disabled = false;
-            document.getElementById('btn-report-word').disabled = false;
+        }
+        document.getElementById('typing-feedback').innerText = "";
+        
+        // 根據三大模式渲染不同的內容
+        if (currentMode === 'quiz') {
+            document.getElementById('target-word').innerText = currentWordObj.word;
+            document.getElementById('hint-display').innerText = `[CEFR: ${currentWordObj.cefr}]`;
+            generateQuizOptions();
+        } 
+        else if (currentMode === 'type') {
+            document.getElementById('target-word').innerText = currentWordObj.translation;
             
-            inputField.focus();
-            setTimeout(speakCurrentWord, 100);
+            // 聽寫模式基礎結構提示
+            let structureHint = generateWordMask(wordClean);
+            document.getElementById('hint-display').innerText = `單字長度: ${wordClean.length} 字元 | 結構提示: ${structureHint} | [${currentWordObj.cefr}]`;
+            
+            setTimeout(() => speakText(currentWordObj.word), 150);
+        } 
+        else if (currentMode === 'cloze') {
+            document.getElementById('target-word').innerText = "請根據上下文填空";
+            document.getElementById('hint-display').innerText = `中文單字釋義：${currentWordObj.translation} | [${currentWordObj.cefr}]`;
+            
+            // 核心挖空演算法：例句中的目標單字替換為挖空格式
+            const escapedWord = wordClean.replace(/[-\/\\^$*+%.?[\]{}()|]/g, '\\$&');
+            const regexWord = new RegExp('\\b' + escapedWord + '[a-z]*\\b', 'gi');
+            
+            const maskHint = generateWordMask(wordClean);
+            const clozeHtml = `<span class="sentence-cloze">${maskHint}</span>`;
+            
+            document.getElementById('sentence-text-en').innerHTML = currentWordObj.sentence_en.replace(regexWord, clozeHtml);
+            document.getElementById('sentence-text-zh').innerText = currentWordObj.sentence_zh;
+            
+            setTimeout(() => speakText(currentWordObj.sentence_en), 200);
         }
     }
-
+    
+    // 核心挖空提示規則：6個單字以下(含)不提供字尾，大於6個單字提供字首與字尾
+    function generateWordMask(word) {
+        const len = word.length;
+        if (len <= 1) return word;
+        
+        if (len <= 6) {
+            return word[0] + "_".repeat(len - 1);
+        } else {
+            return word[0] + "_".repeat(len - 2) + word[len - 1];
+        }
+    }
+    
+    // ============================================================================
+    // 4. 模式一：5選1選項生成與判斷
+    // ============================================================================
     function generateQuizOptions() {
-        let distractorMeanings = [];
-        while(distractorMeanings.length < 4) {
-            let randKey = wordKeys[Math.floor(Math.random() * wordKeys.length)];
-            let randMeaning = wordsData[randKey].meaning.trim();
-            if(randKey.toLowerCase() !== currentWord && randMeaning !== correctMeaning && !distractorMeanings.includes(randMeaning)) {
-                distractorMeanings.push(randMeaning);
+        let distractors = [];
+        while (distractors.length < 4) {
+            let randItem = wordsData[Math.floor(Math.random() * wordsData.length)];
+            if (randItem.word.toLowerCase() !== currentWordObj.word.toLowerCase() && !distractors.includes(randItem.translation)) {
+                distractors.push(randItem.translation);
             }
         }
-
-        let allOptions = [
-            { text: correctMeaning, isCorrect: true },
-            { text: distractorMeanings[0], isCorrect: false },
-            { text: distractorMeanings[1], isCorrect: false },
-            { text: distractorMeanings[2], isCorrect: false },
-            { text: distractorMeanings[3], isCorrect: false }
+        
+        let options = [
+            { text: currentWordObj.translation, isCorrect: true },
+            ...distractors.map(d => ({ text: d, isCorrect: false }))
         ];
-        allOptions.sort(() => Math.random() - 0.5);
-
+        options.sort(() => Math.random() - 0.5);
+        
         const container = document.getElementById('options-container');
         container.innerHTML = "";
-        allOptions.forEach(option => {
+        
+        options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerText = option.text;
-            btn.onclick = () => handleQuizAnswer(btn, option.isCorrect);
+            btn.innerText = opt.text;
+            btn.onclick = () => {
+                if (answerClicked) return;
+                answerClicked = true;
+                statsData.totalAnswered++;
+                
+                if (opt.isCorrect) {
+                    btn.classList.add('correct');
+                    logCorrectCEFR(currentWordObj.cefr);
+                    setTimeout(nextQuestion, 500);
+                } else {
+                    btn.classList.add('wrong');
+                    logWrongAnswer('quiz');
+                    // 標出正確答案
+                    document.querySelectorAll('.option-btn').forEach(b => {
+                        if (b.innerText === currentWordObj.translation) b.classList.add('correct');
+                    });
+                    setTimeout(nextQuestion, 1500);
+                }
+                updateDashboard();
+            };
             container.appendChild(btn);
         });
     }
-
-    function handleQuizAnswer(selectedBtn, isCorrect) {
-        if (answerClicked) return;
-        answerClicked = true;
-        
-        const endTime = performance.now();
-        const duration = (endTime - startTime) / 1000;
-        totalQuizTime += duration;
-        quizAnsweredCount++;
-        totalAnswered++;
-
-        if (isCorrect) {
-            selectedBtn.classList.add('correct');
-            setTimeout(nextQuestion, 400);
-        } else {
-            selectedBtn.classList.add('wrong');
-            logWrongAnswer('quiz');
-            
-            alert(`答錯囉！該單字 [${currentWord}] 位於單字書第 ${currentWordPage} 頁 (對應 ${currentWordPage}.mp3)`);
-            
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(btn => {
-                if (btn.innerText === correctMeaning) btn.classList.add('correct');
-            });
-            setTimeout(nextQuestion, 1200);
-        }
-        updateScoreBoard();
-    }
-
-    document.getElementById('word-input').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            handleTypingAnswer();
-        } else if (e.key === 'Escape' && currentMode === 'type' && !inPenaltyMode) {
-            handleSkip();
-        } else if (e.key === 'F2' && currentMode === 'type') {
-            e.preventDefault();
-            speakCurrentWord();
-        } else if (e.key === 'F4' && currentMode === 'type' && !inPenaltyMode) {
-            e.preventDefault();
-            handleReportError();
-        }
-    });
-
-    function handleTypingAnswer() {
+    
+    // ============================================================================
+    // 5. 模式二與三：手寫/填空答案檢查與 3 次罰寫處理
+    // ============================================================================
+    function handleTypingOrClozeAnswer() {
         const inputField = document.getElementById('word-input');
         const userTyped = inputField.value.trim().toLowerCase();
-        
         if (userTyped === "") return;
+        
         const feedback = document.getElementById('typing-feedback');
-
+        const targetWord = currentWordObj.word.trim().toLowerCase();
+        
         if (!inPenaltyMode) {
             if (answerClicked) return;
             answerClicked = true;
-            totalAnswered++;
-
-            const isCorrect = (userTyped === currentWord);
-
-            if (isCorrect) {
+            statsData.totalAnswered++;
+            
+            if (userTyped === targetWord) {
                 inputField.classList.add('correct');
                 feedback.innerHTML = `<span style="color:#38a169;">➔ 答對了！</span>`;
-                updateScoreBoard();
+                logCorrectCEFR(currentWordObj.cefr);
+                updateDashboard();
                 setTimeout(nextQuestion, 600);
             } else {
-                logWrongAnswer('type');
-                startPenaltySession("答錯了！");
+                logWrongAnswer(currentMode);
+                updateDashboard();
+                startPenaltySession();
             }
         } else {
-            if (userTyped === currentWord) {
+            // 處罰模式中：要求使用者盲打正確單字 3 次
+            if (userTyped === targetWord) {
                 penaltyCurrentCount++;
                 inputField.value = "";
                 inputField.className = "typing-input penalty";
-                speakCurrentWord();
-
+                speakText(targetWord);
+                
                 if (penaltyCurrentCount >= penaltyRequiredCount) {
-                    feedback.innerHTML = `<span style="color:#38a169;">➔ 記憶完成！準備進入下一題</span>`;
+                    feedback.innerHTML = `<span style="color:#38a169;">➔ 記憶強化成功！</span>`;
                     setTimeout(nextQuestion, 600);
                 } else {
-                    feedback.innerHTML = `<span style="color:#ed8936;">➔ 正確！請再輸入 ${penaltyRequiredCount - penaltyCurrentCount} 次。</span>`;
+                    feedback.innerHTML = `<span style="color:#ed8936;">➔ 正確！請再重複輸入 ${penaltyRequiredCount - penaltyCurrentCount} 次。</span>`;
                 }
             } else {
                 inputField.value = "";
-                feedback.innerHTML = `<span style="color:#e53e3e;">➔ 拼寫錯誤，請輸入：<strong>${currentWord}</strong> (書本第 ${currentWordPage} 頁)</span>`;
+                feedback.innerHTML = `<span style="color:#e53e3e;">➔ 拼寫錯誤，請精準照抄：<strong style="font-size:20px;">${targetWord}</strong></span>`;
             }
         }
     }
-
-    function handleReportError() {
-        if (inPenaltyMode || currentMode !== 'type' || answerClicked) return;
+    
+    function startPenaltySession() {
+        inPenaltyMode = true;
+        penaltyCurrentCount = 0;
+        
+        const inputField = document.getElementById('word-input');
+        inputField.value = "";
+        inputField.className = "typing-input penalty";
+        
+        const feedback = document.getElementById('typing-feedback');
+        feedback.innerHTML = `
+            <span style="color:#e53e3e;">➔ 答案不正確！正確單字為：<strong style="font-size:24px; color:#2b6cb0;">${currentWordObj.word}</strong></span>
+            <br><span style="color:#666; font-size:12px;">書本來源: 第 ${currentWordObj.page || '---'} 頁</span>
+            <br><span style="color:#ed8936; font-size:13px; font-weight:bold;">請連續輸入正確單字 3 次以解除鎖定並跳轉。</span>
+        `;
+        speakText(currentWordObj.word);
+        inputField.focus();
+    }
+    
+    function handleSkipWord() {
+        if (inPenaltyMode) return;
+        statsData.totalAnswered++;
+        logWrongAnswer(currentMode);
+        updateDashboard();
+        startPenaltySession();
+    }
+    
+    function handleWhisperError() {
+        if (inPenaltyMode || answerClicked) return;
         answerClicked = true;
-        totalAnswered++;
+        statsData.totalAnswered++;
         
-        // 核心改動：將 isReportedError 設為 true 傳入
-        logWrongAnswer('type', true); 
-        
-        document.getElementById('btn-skip-word').disabled = true;
-        document.getElementById('btn-report-word').disabled = true;
+        logWrongAnswer(currentMode, true); // 標記為音檔錯誤
         
         const inputField = document.getElementById('word-input');
         inputField.disabled = true;
         inputField.className = "typing-input wrong";
         
-        const feedback = document.getElementById('typing-feedback');
-        feedback.innerHTML = `<span style="color:#c53030;">➔ ⚠️ 已接收報錯並跳過此題！<br><strong>📖 該錯誤單字位於：單字書第 ${currentWordPage} 頁 (${currentWordPage}.mp3)</strong><br><span style="color:#4a5568; font-size:12px;">系統正在自動切換下一題...</span></span>`;
-        
-        updateScoreBoard();
-        setTimeout(nextQuestion, 2200);
+        document.getElementById('typing-feedback').innerHTML = `
+            <span style="color:#c53030;">⚠️ 已收到 Whisper 音檔報錯回報（頁碼: ${currentWordObj.page}）！正在切換下一題...</span>
+        `;
+        updateDashboard();
+        setTimeout(nextQuestion, 2000);
     }
-
-    function handleSkip() {
-        if (inPenaltyMode || currentMode !== 'type') return;
-        totalAnswered++;
-        logWrongAnswer('type'); 
-        startPenaltySession("已跳過此題！");
+    
+    // ============================================================================
+    // 6. 資料流同步與 localStorage 永續儲存
+    // ============================================================================
+    function logCorrectCEFR(cefrLevel) {
+        if (statsData.correctPool.hasOwnProperty(cefrLevel)) {
+            statsData.correctPool[cefrLevel]++;
+        }
+        localStorage.setItem('toeic_v3_stats', JSON.stringify(statsData));
     }
-
-    function startPenaltySession(prefixReason) {
-        inPenaltyMode = true;
-        penaltyCurrentCount = 0;
-        document.getElementById('btn-skip-word').disabled = true; 
-        document.getElementById('btn-report-word').disabled = true; 
-        
-        const inputField = document.getElementById('word-input');
-        inputField.disabled = false;
-        inputField.value = "";
-        inputField.className = "typing-input penalty";
-        
-        const feedback = document.getElementById('typing-feedback');
-        feedback.innerHTML = `<span style="color:#e53e3e;">➔ ${prefixReason} 正確答案：<strong style="font-size:22px; color:#2b6cb0;">${currentWord}</strong> 
-        <br><strong style="color: #c53030; font-size:14px;">📖 該錯誤源自單字書第 ${currentWordPage} 頁 (${currentWordPage}.mp3)</strong>
-        <br><span style="color:#ed8936; font-size:13px;">請連續輸入正確單字 3 次以解鎖下一題。</span></span>`;
-        
-        speakCurrentWord();
-        updateScoreBoard();
-        inputField.focus();
-    }
-
-    function logWrongAnswer(modeKey, isReportedError = false) {
-        if (!trackingData[modeKey][currentWord]) {
-            trackingData[modeKey][currentWord] = { 
-                chinese_meaning: correctMeaning,
-                page_source: currentWordPage, 
+    
+    function logWrongAnswer(modeKey, isWhisperError = false) {
+        const wordKey = currentWordObj.word.trim();
+        if (!trackingData[modeKey][wordKey]) {
+            trackingData[modeKey][wordKey] = {
+                translation: currentWordObj.translation,
+                cefr: currentWordObj.cefr,
+                page: currentWordObj.page,
                 wrong_count: 0,
                 whisper_error: false,
-                last_tested: "" 
+                last_tested: ""
             };
         }
-        trackingData[modeKey][currentWord].wrong_count += 1;
-        if (isReportedError) {
-            trackingData[modeKey][currentWord].whisper_error = true;
+        trackingData[modeKey][wordKey].wrong_count++;
+        if (isWhisperError) {
+            trackingData[modeKey][wordKey].whisper_error = true;
         }
-        trackingData[modeKey][currentWord].last_tested = new Date().toISOString();
-        localStorage.setItem('toeic_wrong_track_v7', JSON.stringify(trackingData));
+        trackingData[modeKey][wordKey].last_tested = new Date().toISOString();
+        localStorage.setItem('toeic_v3_wrong_track', JSON.stringify(trackingData));
     }
-
-    function updateScoreBoard() {
-        document.getElementById('total-count').innerText = totalAnswered;
+    
+    // ============================================================================
+    // 7. 數據儀表板渲染與 CEFR 百分比軸即時運算
+    // ============================================================================
+    function updateDashboard() {
+        // 更新答題總數
+        document.getElementById('total-count').innerText = statsData.totalAnswered;
         
-        // 計算總錯題數（包含閃卡與打字模式，但不重複計字）
-        let quizCount = Object.keys(trackingData.quiz).length;
-        let typeCount = Object.keys(trackingData.type).length;
-        document.getElementById('wrong-vocab-count').innerText = quizCount + typeCount;
-
-        if (currentMode === "quiz") {
-            document.getElementById('current-mode-text').innerText = "5選1猜中文";
-            const avgSec = quizAnsweredCount === 0 ? 0 : (totalQuizTime / quizAnsweredCount);
-            document.getElementById('avg-seconds').innerText = avgSec.toFixed(2);
-        } else {
-            document.getElementById('current-mode-text').innerText = "拼音聽寫模式";
-        }
-    }
-
-    // 【核心優化】導出時將「報錯單字」獨立分流處理
-    function exportWrongData() {
-        let cleanExportData = {
-            quiz: {},
-            type: {},
-            reported_whisper_errors: {} // 獨立拆分區塊
-        };
-
-        // 整理閃卡模式錯題
-        for (let word in trackingData.quiz) {
-            cleanExportData.quiz[word] = trackingData.quiz[word];
-        }
-
-        // 整理打字模式錯題（將報錯與正常拼錯分流）
-        for (let word in trackingData.type) {
-            let item = trackingData.type[word];
-            if (item.whisper_error === true) {
-                cleanExportData.reported_whisper_errors[word] = {
-                    chinese_meaning: item.chinese_meaning,
-                    page_source: item.page_source,
-                    report_count: item.wrong_count,
-                    last_reported: item.last_tested
-                };
-            } else {
-                cleanExportData.type[word] = item;
+        // 計算答對總數（做為分母）
+        const totalCorrectDenominator = Object.values(statsData.correctPool).reduce((a, b) => a + b, 0);
+        
+        // 定義六大 CEFR 等級
+        const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+        let totalWrongCount = 0;
+        
+        levels.forEach(lvl => {
+            const numerator = statsData.correctPool[lvl];
+            let percentage = 0;
+            
+            if (totalCorrectDenominator > 0) {
+                percentage = Math.round((numerator / totalCorrectDenominator) * 100);
             }
-        }
-
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cleanExportData, null, 4));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "toeic_classified_wrong_data.json");
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
+            
+            // 更新文字標籤格式: "A1 1/10 10%"
+            const labelEl = document.getElementById(`cefr-text-${lvl}`);
+            if (labelEl) {
+                labelEl.innerText = `${lvl} ${numerator}/${totalCorrectDenominator} ${percentage}%`;
+            }
+            
+            // 更新網頁上的百分比軸進度條 (CSS width)
+            const barEl = document.getElementById(`cefr-bar-${lvl}`);
+            if (barEl) {
+                barEl.style.width = `${percentage}%`;
+            }
+            
+            // 順便統計所有模式累積錯題不重複總量
+            totalWrongCount += Object.keys(trackingData.quiz).length + 
+                               Object.keys(trackingData.type).length + 
+                               Object.keys(trackingData.cloze).length;
+        });
+        
+        document.getElementById('wrong-vocab-count').innerText = Object.keys(trackingData.quiz).length + Object.keys(trackingData.type).length + Object.keys(trackingData.cloze).length;
     }
-
-    function clearTrackingData() {
-        if(confirm("確定要將所有累積紀錄完全清空重來嗎？")) {
-            localStorage.removeItem('toeic_wrong_track_v7');
-            trackingData = { quiz: {}, type: {} };
-            totalAnswered = 0;
-            totalQuizTime = 0;
-            quizAnsweredCount = 0;
-            updateScoreBoard();
+    
+    // ============================================================================
+    // 8. 輔助工具：TTS 發音與數據清理
+    // ============================================================================
+    function speakText(text) {
+        if (!text || text.includes("No example")) return;
+        if (synth.speaking) synth.cancel();
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85;
+        synth.speak(utterance);
+    }
+    
+    function clearAllRecords() {
+        if (confirm("確定要將 3.0 系統的所有累積紀錄與 CEFR 百分比分佈圖表完全重設清空嗎？")) {
+            localStorage.removeItem('toeic_v3_stats');
+            localStorage.removeItem('toeic_v3_wrong_track');
+            statsData = { totalAnswered: 0, correctPool: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 } };
+            trackingData = { quiz: {}, type: {}, cloze: {} };
+            updateDashboard();
             nextQuestion();
         }
     }
