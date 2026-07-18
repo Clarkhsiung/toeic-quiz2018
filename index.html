@@ -3,679 +3,1269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOEIC 多益單字全方位衝刺系統 v3.0</title>
+    <title>CEFR 智慧單字實戰練習系統 3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        cefr: {
+                            a1: '#4caf50',
+                            a2: '#8bc34a',
+                            b1: '#ffc107',
+                            b2: '#ff9800',
+                            c1: '#ff5722',
+                            c2: '#f44336'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, 'Microsoft JhengHei', sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            max-width: 550px;
-            width: 100%;
-            text-align: center;
-        }
-        h1 { color: #1b365d; font-size: 24px; margin-bottom: 15px; }
-        
-        .mode-selector {
-            display: flex;
-            background-color: #e2e8f0;
-            padding: 4px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            gap: 4px;
-        }
-        .mode-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            padding: 10px;
-            font-size: 13px;
-            font-weight: bold;
-            color: #4a5568;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-        .mode-btn.active {
-            background-color: white;
-            color: #2b6cb0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .score-board {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 12px;
-        }
-        .score-row {
-            display: flex;
-            justify-content: space-between;
-        }
-        .word-display {
-            font-size: 38px;
-            font-weight: bold;
-            color: #2b6cb0;
-            margin: 25px 0;
-            letter-spacing: 0.5px;
-        }
-        .hint-text {
-            font-size: 16px;
-            color: #718096;
-            margin-bottom: 20px;
-            font-weight: 500;
+        :root {
+            --color-a1: #10b981;
+            --color-a2: #84cc16;
+            --color-b1: #f59e0b;
+            --color-b2: #f97316;
+            --color-c1: #ef4444;
+            --color-c2: #7c3aed;
         }
         
-        /* 5選1 模式樣式 */
-        .options-zone {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .option-btn {
-            background-color: #fff;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 14px;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-        .option-btn:hover { background-color: #ebf8ff; border-color: #bee3f8; color: #2b6cb0; }
-        .option-btn.correct { background-color: #c6f6d5 !important; border-color: #48bb78 !important; color: #22543d !important; }
-        .option-btn.wrong { background-color: #fed7d7 !important; border-color: #f56565 !important; color: #742a2a !important; }
-        
-        /* 手寫/填空共通輸入區樣式 */
-        .typing-zone {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-        .typing-input {
-            width: 80%;
-            padding: 12px 16px;
-            font-size: 22px;
-            border: 2px solid #cbd5e0;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: bold;
-            letter-spacing: 1px;
-            outline: none;
-            text-transform: lowercase;
-        }
-        .typing-input:focus { border-color: #3182ce; box-shadow: 0 0 0 3px rgba(66,153,225,0.2); }
-        .typing-input.correct { border-color: #48bb78; background-color: #f0fff4; color: #38a169; }
-        .typing-input.wrong { border-color: #e53e3e; background-color: #fff5f5; color: #e53e3e; }
-        .typing-input.penalty { border-color: #ed8936; background-color: #fffaf0; color: #dd6b20; }
-        
-        /* 模式三：例句面板樣式 */
-        .sentence-panel {
-            display: none;
-            background-color: #edf2f7;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: left;
-            border-left: 4px solid #3182ce;
-        }
-        .sentence-en { font-size: 18px; font-weight: 500; color: #2d3748; margin-bottom: 8px; line-height: 1.4; }
-        .sentence-zh { font-size: 15px; color: #4a5568; }
-        .sentence-cloze { color: #e53e3e; font-weight: bold; border-bottom: 2px dashed #e53e3e; padding: 0 4px; letter-spacing: 2px; }
+        .cefr-badge-A1 { background-color: var(--color-a1); }
+        .cefr-badge-A2 { background-color: var(--color-a2); }
+        .cefr-badge-B1 { background-color: var(--color-b1); }
+        .cefr-badge-B2 { background-color: var(--color-b2); }
+        .cefr-badge-C1 { background-color: var(--color-c1); }
+        .cefr-badge-C2 { background-color: var(--color-c2); }
 
-        .type-btn-group {
-            display: flex;
-            gap: 10px;
-            width: 90%;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .skip-btn {
-            background-color: #edf2f7;
-            color: #4a5568;
-            border: 1px solid #cbd5e0;
-            padding: 10px 16px;
-            font-size: 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            flex: 1;
-            min-width: 120px;
-        }
-        .skip-btn:hover { background-color: #e2e8f0; }
-        
-        .audio-btn { background-color: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
-        .audio-btn:hover { background-color: #dee3f8; }
+        .cefr-border-A1 { border-color: var(--color-a1); }
+        .cefr-border-A2 { border-color: var(--color-a2); }
+        .cefr-border-B1 { border-color: var(--color-b1); }
+        .cefr-border-B2 { border-color: var(--color-b2); }
+        .cefr-border-C1 { border-color: var(--color-c1); }
+        .cefr-border-C2 { border-color: var(--color-c2); }
 
-        .report-btn { background-color: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; }
-        .report-btn:hover { background-color: #fff0f0; border-color: #e53e3e; }
+        .cefr-text-A1 { color: var(--color-a1); }
+        .cefr-text-A2 { color: var(--color-a2); }
+        .cefr-text-B1 { color: var(--color-b1); }
+        .cefr-text-B2 { color: var(--color-b2); }
+        .cefr-text-C1 { color: var(--color-c1); }
+        .cefr-text-C2 { color: var(--color-c2); }
 
-        .admin-zone {
-            margin-top: 35px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
+        .flashcard-inner {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
         }
-        .admin-btn {
-            background-color: #4a5568;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            font-size: 12px;
-            border-radius: 4px;
-            cursor: pointer;
+        .flashcard-flipped {
+            transform: rotateY(180deg);
         }
-        .admin-btn:hover { background-color: #2d3748; }
-
-        /* CEFR 視覺百分比軸樣式區 */
-        .cefr-dashboard {
-            margin-top: 25px;
-            text-align: left;
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
         }
-        .cefr-title { font-size: 14px; font-weight: bold; color: #4a5568; margin-bottom: 10px; }
-        .cefr-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 12px; }
-        .cefr-label { width: 110px; font-weight: bold; color: #4a5568; }
-        .cefr-progress-bg { flex-grow: 1; background: #edf2f7; height: 10px; border-radius: 5px; overflow: hidden; margin-left: 10px; }
-        .cefr-progress-bar { width: 0%; height: 100%; background: #3182ce; transition: width 0.3s ease; border-radius: 5px; }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
 
-<div class="container">
-    <h1>TOEIC 多益雙語單字衝刺系統</h1>
-    
-    <div class="mode-selector">
-        <button class="mode-btn active" id="btn-quiz-mode" onclick="switchMode('quiz')">單字閃卡 (5選1)</button>
-        <button class="mode-btn" id="btn-type-mode" onclick="switchMode('type')">拼音聽寫模式</button>
-        <button class="mode-btn" id="btn-cloze-mode" onclick="switchMode('cloze')">例句填空模式</button>
-    </div>
-    
-    <div class="score-board">
-        <div class="score-row">
-            <div>目前模式: <span id="current-mode-text" style="font-weight:bold; color:#2b6cb0;">5選1猜中文</span></div>
-            <div>累積錯題字數: <span id="wrong-vocab-count">0</span> 個</div>
-        </div>
-        <div class="score-row">
-            <div>已答題數: <span id="total-count">0</span></div>
-            <div></div>
-        </div>
-    </div>
-
-    <!-- 核心出題面板 -->
-    <div class="word-display" id="target-word">載入字庫中...</div>
-    <div class="hint-text" id="hint-display"></div>
-
-    <!-- 模式三：例句展示面板 -->
-    <div class="sentence-panel" id="sentence-box">
-        <div class="sentence-en" id="sentence-text-en">Loading sentence...</div>
-        <div class="sentence-zh" id="sentence-text-zh">正在載入翻譯...</div>
-    </div>
-
-    <!-- 模式一：5選1 選項按鈕區 -->
-    <div class="options-zone" id="options-container">
-        <button class="option-btn">正在載入...</button>
-    </div>
-
-    <!-- 模式二與模式三共用：拼音打字/手寫輸入區 -->
-    <div class="typing-zone" id="typing-container">
-        <input type="text" class="typing-input" id="word-input" placeholder="請輸入英文單字..." autocomplete="off" spellcheck="false">
-        <div id="typing-feedback" style="font-size: 14px; font-weight: bold; min-height: 55px; margin-top: 5px; line-height: 1.5;"></div>
-        <div class="type-btn-group">
-            <button class="skip-btn audio-btn" onclick="speakCurrentWord()">🔊 重新發音 (F2)</button>
-            <button class="skip-btn report-btn" id="btn-report-word" onclick="handleWhisperError()">⚠️ 報錯/略過此題 (F4)</button>
-            <button class="skip-btn" id="btn-skip-word" onclick="handleSkipWord()">不會，我想學 (Esc)</button>
-        </div>
-    </div>
-
-    <!-- 動態 CEFR 等級答對分佈百分比軸 -->
-    <div class="cefr-dashboard">
-        <div class="cefr-title">📊 答對單字之 CEFR 等級分佈統計</div>
-        <div class="cefr-row"><span class="cefr-label" id="cefr-text-A1">A1 0/0 0%</span><div class="cefr-progress-bg"><div class="cefr-progress-bar" id="cefr-bar-A1"></div></div></div>
-        <div class="cefr-row"><span class="cefr-label" id="cefr-text-A2">A2 0/0 0%</span><div class="cefr-progress-bg"><div class="cefr-progress-bar" id="cefr-bar-A2"></div></div></div>
-        <div class="cefr-row"><span class="cefr-label" id="cefr-text-B1">B1 0/0 0%</span><div class="cefr-progress-bg"><div class="cefr-progress-bar" id="cefr-bar-B1"></div></div></div>
-        <div class="cefr-row"><span class="cefr-label" id="cefr-text-B2">B2 0/0 0%</span><div class="cefr-progress-bg"><div class="cefr-progress-bar" id="cefr-bar-B2"></div></div></div>
-        <div class="cefr-row"><span class="cefr-label" id="cefr-text-C1">C1 0/0 0%</span><div class="cefr-progress-bg"><div class="cefr-progress-bar" id="cefr-bar-C1"></div></div></div>
-        <div class="cefr-row"><span class="cefr-label" id="cefr-text-C2">C2 0/0 0%</span><div class="cefr-progress-bg"><div class="cefr-progress-bar" id="cefr-bar-C2"></div></div></div>
-    </div>
-
-    <!-- 後台數據清理管理 -->
-    <div class="admin-zone">
-        <button class="admin-btn" style="background-color: #c53030;" onclick="clearAllRecords()">重設所有紀錄</button>
-    </div>
-</div>
-
-<script>
-    // ============================================================================
-    // TOEIC 多益 3.0 核心狀態管理 (完全相容 GitHub Pages)
-    // ============================================================================
-    let wordsData = [];          
-    let currentWordObj = null;   
-    let currentMode = "quiz";    
-
-    let statsData = JSON.parse(localStorage.getItem('toeic_v3_stats')) || {
-        totalAnswered: 0,
-        correctPool: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 }
-    };
-    
-    let trackingData = JSON.parse(localStorage.getItem('toeic_v3_wrong_track')) || {
-        quiz: {},
-        type: {},
-        cloze: {}
-    };
-    
-    let inPenaltyMode = false;
-    const penaltyRequiredCount = 3;
-    let penaltyCurrentCount = 0;
-    let answerClicked = false;
-    
-    const synth = window.speechSynthesis;
-    
-    // ============================================================================
-    // 1. 初始化與資料載入
-    // ============================================================================
-    document.addEventListener("DOMContentLoaded", () => {
-        fetch('words_db.json')
-            .then(response => {
-                if (!response.ok) throw new Error("找不到或無法載入 words_db.json");
-                return response.json();
-            })
-            .then(data => {
-                wordsData = Array.isArray(data) ? data : Object.entries(data).map(([word, val]) => ({
-                    word: word,
-                    cefr: val.cefr || "B1",
-                    translation: val.meaning || val.translation,
-                    page: val.page || "",
-                    sentence_en: val.sentence_en || (val.examples && val.examples[0] ? val.examples[0].en : "No example available."),
-                    sentence_zh: val.sentence_zh || (val.examples && val.examples[0] ? val.examples[0].zh : "暫無例句翻譯。")
-                }));
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="material-icons-round text-indigo-600 dark:text-indigo-400 text-3xl">auto_stories</span>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">CEFR 智慧字彙庫</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">大版本 3.0 極致特訓系統</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Theme Toggle -->
+                <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:ring-2 hover:ring-indigo-500 transition-all text-slate-600 dark:text-slate-300">
+                    <span id="theme-icon" class="material-icons-round text-lg">dark_mode</span>
+                </button>
                 
-                initEventListeners();
-                updateDashboard();
-                nextQuestion();
-            })
-            .catch(err => {
-                console.error("❌ 系統載入失敗:", err);
-                document.getElementById('target-word').innerText = "字庫載入失敗，請檢查 words_db.json 格式";
-            });
-    });
-    
-    function initEventListeners() {
-        const wordInput = document.getElementById('word-input');
-        if (wordInput) {
-            wordInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleTypingOrClozeAnswer();
-                } else if (e.key === 'Escape' && !inPenaltyMode) {
-                    handleSkipWord();
-                } else if (e.key === 'F2') {
-                    e.preventDefault();
-                    speakCurrentWord();
-                } else if (e.key === 'F4' && !inPenaltyMode) {
-                    e.preventDefault();
-                    handleWhisperError();
+                <!-- Database Sync Indicator -->
+                <div id="db-status" class="flex items-center space-x-2 px-3  py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-medium">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="db-status-text">未載入 words_db.json</span>
+                </div>
+                
+                <!-- Manual File Input -->
+                <label class="cursor-pointer flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold transition-all">
+                    <span class="material-icons-round text-sm">upload_file</span>
+                    <span>上傳 JSON</span>
+                    <input type="file" id="json-file-input" accept=".json" class="hidden" onchange="handleFileUpload(event)">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap gap-2 mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <button onclick="switchTab('flashcards')" id="tab-flashcards" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-500/20">
+                <span class="material-icons-round text-base">style</span>
+                <span>單字閃卡</span>
+            </button>
+            <button onclick="switchTab('dictation')" id="tab-dictation" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800">
+                <span class="material-icons-round text-base">keyboard</span>
+                <span>拼音聽寫</span>
+            </button>
+            <button onclick="switchTab('sentences')" id="tab-sentences" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800">
+                <span class="material-icons-round text-base">translate</span>
+                <span>例句挖空填詞</span>
+            </button>
+            <button onclick="switchTab('database')" id="tab-database" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800">
+                <span class="material-icons-round text-base">menu_book</span>
+                <span>字彙總覽庫</span>
+            </button>
+        </div>
+
+        <div id="loading-overlay" class="hidden text-center py-12">
+            <div class="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="mt-4 text-slate-500">正在處理單字庫資料...</p>
+        </div>
+
+        <div id="empty-state" class="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm transition-all">
+            <span class="material-icons-round text-6xl text-indigo-500 animate-bounce">cloud_download</span>
+            <h2 class="text-2xl font-bold mt-4">請加載您的 words_db.json</h2>
+            <p class="text-slate-500 mt-2 max-w-md mx-auto">本練習系統需讀取 Python 重構腳本生成的 V3 規格資料庫。您可以將您的 <code>words_db_v3.json</code> (或舊版 <code>words_db.json</code>) 拖曳上傳至此處，或在本地運行網頁伺服器自動讀取。</p>
+            <div class="mt-6 flex justify-center space-x-4">
+                <button onclick="loadMockData()" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-2xl text-sm font-semibold transition-all">
+                    體驗內建展示單字
+                </button>
+                <button onclick="document.getElementById('json-file-input').click()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/30">
+                    立即載入 JSON 檔案
+                </button>
+            </div>
+        </div>
+
+        <div id="main-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left 2/3: Active Mode Panel -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Zone: Flashcards (單字閃卡) -->
+                <div id="pane-flashcards" class="app-pane space-y-6">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">單字閃卡實戰</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-bold text-indigo-600" id="flash-progress-txt">0 / 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Flip Stage -->
+                        <div class="w-full h-64 cursor-pointer perspective" onclick="flipFlashcard()">
+                            <div id="flashcard" class="flashcard-inner w-full h-full relative rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md">
+                                <!-- Front Face (English Word & CEFR) -->
+                                <div class="flashcard-front absolute inset-0 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-850 rounded-2xl flex flex-col justify-center items-center p-6 text-center">
+                                    <span id="flash-cefr" class="text-xs font-bold text-white px-3.5 py-1.5 rounded-full mb-4 shadow-sm">--</span>
+                                    <h2 id="flash-en" class="text-4xl font-extrabold tracking-tight select-all">Loading...</h2>
+                                    <p class="text-xs text-slate-400 mt-4 flex items-center gap-1">
+                                        <span class="material-icons-round text-sm">touch_app</span> 點擊卡片翻面看完整解析
+                                    </p>
+                                </div>
+                                <!-- Back Face (Details) -->
+                                <div class="flashcard-back absolute inset-0 bg-white dark:bg-slate-850 rounded-2xl flex flex-col justify-center items-center p-6 text-center overflow-y-auto">
+                                    <h3 id="flash-back-en" class="text-2xl font-bold mb-2">Loading...</h3>
+                                    <div class="h-px bg-slate-200 dark:bg-slate-700 w-24 mb-4"></div>
+                                    <p id="flash-translation" class="text-base font-semibold text-indigo-600 dark:text-indigo-400 mb-2">中文意思</p>
+                                    <p id="flash-sent-en" class="text-sm text-slate-500 italic mb-1 px-4">"Example sentence."</p>
+                                    <p id="flash-sent-zh" class="text-xs text-slate-400 font-medium px-4">「例句中文翻譯」</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Single Target Translation Multiple Choices (只隨機抽出該英文的一個中文意思作為其中一個選項) -->
+                        <div class="mt-8 space-y-3">
+                            <p class="text-sm font-bold text-slate-500 mb-2 flex items-center gap-1">
+                                <span class="material-icons-round text-sm">quiz</span> 
+                                <span>請選擇符合本單字其中一個對應的意思：</span>
+                            </p>
+                            <div id="flash-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Option buttons will be injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Actions bar -->
+                        <div class="mt-8 flex justify-between items-center border-t border-slate-100 dark:border-slate-700/60 pt-6">
+                            <button onclick="skipFlashcard()" class="flex items-center space-x-1 text-sm font-semibold text-slate-500 hover:text-indigo-500 transition-colors">
+                                <span class="material-icons-round">skip_next</span>
+                                <span>跳過此單字</span>
+                            </button>
+                            <span id="flash-feedback" class="text-sm font-bold animate-pulse"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pane-dictation" class="app-pane space-y-6 hidden">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative">
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">拼音聽寫特訓</span>
+                            <span class="text-sm font-bold text-slate-500" id="dict-progress-txt">0 / 0</span>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Displaying ALL translation meanings (顯示所有中文釋義) -->
+                            <div class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200/60 dark:border-slate-850 text-center">
+                                <div class="flex justify-center mb-3">
+                                    <span id="dict-cefr" class="text-xs font-bold text-white px-3 py-1 rounded-full">A1</span>
+                                </div>
+                                <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-2">多重詞性完整中文釋義：</h3>
+                                <p id="dict-all-meanings" class="text-xl font-bold text-slate-800 dark:text-white px-2">
+                                    --
+                                </p>
+                            </div>
+
+                            <!-- Input Form -->
+                            <div class="space-y-3">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">輸入拼寫解答：</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="dict-input" autocomplete="off" placeholder="請輸入對應的完整英文單字" class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl font-bold tracking-wide outline-none transition-all text-lg">
+                                    <button onclick="checkDictationAnswer()" class="px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all flex items-center justify-center space-x-1">
+                                        <span class="material-icons-round">spellcheck</span>
+                                        <span>送出</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Dictation Actions & Feedback -->
+                            <div class="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-700/60">
+                                <div class="flex space-x-3">
+                                    <button onclick="speakCurrentWord()" class="flex items-center space-x-1 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-xl text-xs font-bold transition-all">
+                                        <span class="material-icons-round text-sm">volume_up</span>
+                                        <span>單字語音</span>
+                                    </button>
+                                    <button onclick="revealDictationHint()" class="flex items-center space-x-1 px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold transition-all">
+                                        <span class="material-icons-round text-sm">tips_and_updates</span>
+                                        <span>提示首尾字母</span>
+                                    </button>
+                                </div>
+                                <span id="dict-feedback" class="text-sm font-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pane-sentences" class="app-pane space-y-6 hidden">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative">
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300">例句情境語感養成</span>
+                            <span class="text-sm font-bold text-slate-500" id="sent-progress-txt">0 / 0</span>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Challenge Context Display -->
+                            <div class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200/60 dark:border-slate-850">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span id="sent-cefr" class="text-xs font-bold text-white px-2.5 py-1 rounded-full">CEFR</span>
+                                    <span id="sent-lemma-hint" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-full">原形：--</span>
+                                </div>
+                                
+                                <!-- Dynamic sentence container that embeds input directly in sentence structure -->
+                                <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-3">請填寫句中對應單字（注意時態與複數變形）：</h3>
+                                <div id="sentence-container" class="text-lg md:text-xl font-bold leading-relaxed tracking-wide text-slate-800 dark:text-white mb-4">
+                                    <!-- Dynamic text structure with input box inserted will go here -->
+                                </div>
+                                
+                                <p id="sent-translation-zh" class="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                                    中文：--
+                                </p>
+                            </div>
+
+                            <!-- Form Verification -->
+                            <div class="flex gap-2">
+                                <input type="text" id="sentence-word-input" placeholder="根據前後文、時態、人稱，拼寫出正確形式..." autocomplete="off" class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl font-bold outline-none transition-all text-lg">
+                                <button onclick="checkSentenceAnswer()" class="px-6 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold transition-all flex items-center justify-center space-x-1">
+                                    <span class="material-icons-round">done_outline</span>
+                                    <span>驗證答案</span>
+                                </button>
+                            </div>
+
+                            <!-- Footer action buttons -->
+                            <div class="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-700/60">
+                                <div class="flex space-x-2">
+                                    <button onclick="revealSentenceHint()" class="flex items-center space-x-1 px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold transition-all">
+                                        <span class="material-icons-round text-sm">lightbulb</span>
+                                        <span>單字首字母與長度提示</span>
+                                    </button>
+                                </div>
+                                <span id="sent-feedback" class="text-sm font-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pane-database" class="app-pane hidden space-y-6">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold">目前字彙庫內容一覽</h3>
+                                <p class="text-xs text-slate-500 mt-1">您可以搜尋單字、篩選 CEFR 等級並查看完整詞性結構</p>
+                            </div>
+                            <!-- Live search -->
+                            <div class="relative w-full sm:w-64">
+                                <span class="material-icons-round absolute left-3 top-2.5 text-slate-400 text-base">search</span>
+                                <input type="text" id="db-search" oninput="renderDatabaseTable()" placeholder="搜尋單字、中文釋義..." class="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl text-sm outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Level Filters -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <button onclick="filterLevel('ALL')" class="lvl-filter-btn px-3.5 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold transition-all">全部</button>
+                            <button onclick="filterLevel('A1')" class="lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200">A1</button>
+                            <button onclick="filterLevel('A2')" class="lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200">A2</button>
+                            <button onclick="filterLevel('B1')" class="lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200">B1</button>
+                            <button onclick="filterLevel('B2')" class="lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200">B2</button>
+                            <button onclick="filterLevel('C1')" class="lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200">C1</button>
+                            <button onclick="filterLevel('C2')" class="lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200">C2</button>
+                        </div>
+
+                        <!-- Data table layout -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200/65 dark:border-slate-800">
+                                    <tr>
+                                        <th class="p-3.5 font-bold text-slate-500">級別</th>
+                                        <th class="p-3.5 font-bold text-slate-500">英文單字</th>
+                                        <th class="p-3.5 font-bold text-slate-500">中文釋義 (含多重詞性)</th>
+                                        <th class="p-3.5 font-bold text-slate-500">書本頁碼</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="db-tbody" class="divide-y divide-slate-200/50 dark:divide-slate-800">
+                                    <!-- Injected lines -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="space-y-6">
+                <!-- Learning stats card (Left side equivalent) -->
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                    <span class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl"></span>
+                    
+                    <h3 class="text-sm font-bold text-slate-400 tracking-wider uppercase mb-4">學程記錄儀表板</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+                            <p class="text-xs text-slate-400 font-medium">累計練習量</p>
+                            <p id="stat-total-practiced" class="text-2xl font-black mt-1 text-slate-800 dark:text-white">0</p>
+                        </div>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+                            <p class="text-xs text-slate-400 font-medium">全域答對率</p>
+                            <p id="stat-accuracy" class="text-2xl font-black mt-1 text-emerald-500">0%</p>
+                        </div>
+                    </div>
+
+                    <!-- Level-based score status tracker -->
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">掌握級別統計 (答對單字數量)：</h4>
+                    <div id="cefr-mastery-list" class="space-y-2.5">
+                        <!-- Instantiated by setup code -->
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                    <span class="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl"></span>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-400 tracking-wider uppercase">錯題單字等級分布</h3>
+                        <span id="wrong-count-total" class="px-2.5 py-0.5 rounded-full bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 text-xs font-bold">0 錯</span>
+                    </div>
+
+                    <!-- Progress chart detailing level distribution for incorrect attempts -->
+                    <div class="space-y-3.5" id="wrong-distribution-bars">
+                        <!-- Distributed level bars populated dynamically -->
+                    </div>
+
+                    <!-- Review block link trigger -->
+                    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/60">
+                        <button onclick="openReviewSession()" id="review-btn" class="w-full py-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200/50 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-400 rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm">
+                            <span class="material-icons-round text-sm">history_edu</span>
+                            <span>進入錯題加強模式 (0)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Core data arrays & maps
+        let rawVocabulary = {}; // Entire loaded dataset
+        let activeWordsList = []; // Array representation of current subset (search/filter applied)
+        let filteredLevel = 'ALL';
+        
+        // Progress State tracking
+        let sessionState = {
+            currentIndex: 0,
+            correctCount: 0,
+            attemptCount: 0,
+            currentMode: 'flashcards', // 'flashcards', 'dictation', 'sentences'
+            lastAnswered: false, // Prevents multiple logs on the same question
+            
+            // Practice Records
+            completedWordSet: new Set(),
+            masteredMap: { 'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0 },
+            
+            // Wrong Answers Tracking (對應錯題統計需求)
+            wrongMap: new Map(), // word string -> { wordObj, failCount, cefr }
+            wrongLevelCounts: { 'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0 }
+        };
+
+        // Complete robust fallback database containing rich V3 elements (多重詞性、例句、等級)
+        const MOCK_VOCABULARY_V3 = {
+            "apple": {
+                "cefr": "A1",
+                "translation": "蘋果 ( [名] 蘋果樹的果實、蘋果園 )",
+                "page": "1",
+                "sentence_en": "She took a bite of the crispy red apple.",
+                "sentence_zh": "她咬了一口那顆鮮脆的紅蘋果。"
+            },
+            "negotiate": {
+                "cefr": "B2",
+                "translation": "協商 ( [動] 談判、磋商、轉讓 )",
+                "page": "45",
+                "sentence_en": "The two countries managed to negotiate a peace treaty.",
+                "sentence_zh": "兩國成功地協商簽署了一份和平條約。"
+            },
+            "meticulous": {
+                "cefr": "C2",
+                "translation": "一絲不苟的 ( [形] 細心的、謹慎的、極度注意細節的 )",
+                "page": "108",
+                "sentence_en": "She was meticulous in her preparation for the critical exam.",
+                "sentence_zh": "她在準備這場關鍵考試時，表現得極其細心且一絲不苟。"
+            },
+            "rebuild": {
+                "cefr": "B1",
+                "translation": "重建 ( [動] 重新組裝、重建、改建 )",
+                "page": "12",
+                "sentence_en": "The community plans to rebuild the old library soon.",
+                "sentence_zh": "社區計劃不久後重新建造這座老舊的圖書館。"
+            },
+            "vivid": {
+                "cefr": "B2",
+                "translation": "生動的 ( [形] 鮮艷的、生氣勃勃的、清晰的 )",
+                "page": "78",
+                "sentence_en": "He gave a vivid description of his travel adventures.",
+                "sentence_zh": "他對自己的旅行冒險做出了十分生動的描繪。"
+            },
+            "undertake": {
+                "cefr": "C1",
+                "translation": "承擔 ( [動] 答應、著手做、接受 )",
+                "page": "91",
+                "sentence_en": "We must undertake new measures to solve the environmental problems.",
+                "sentence_zh": "我們必須承擔並實施新措施來解決環境問題。"
+            },
+            "box": {
+                "cefr": "A1",
+                "translation": "箱子 ( [名] 盒子、箱子；[動] 裝箱 )",
+                "page": "5",
+                "sentence_en": "He packed the books into a large cardboard box.",
+                "sentence_zh": "他把書裝進一個大的紙板箱裡。"
+            },
+            "study": {
+                "cefr": "A2",
+                "translation": "學習 ( [動] 研讀、調查；[名] 學業、研究 )",
+                "page": "18",
+                "sentence_en": "She studied very hard for the entrance examinations last month.",
+                "sentence_zh": "她上個月為了入學考試非常用功地進行學習。"
+            },
+            "runs": {
+                "cefr": "A1",
+                "translation": "跑 ( [動] 奔跑、運作；[名] 跑步、運行 )",
+                "page": "3",
+                "sentence_en": "He runs five miles along the river bank every morning.",
+                "sentence_zh": "他每天早上沿著河堤跑五英里。"
+            },
+            "studies": {
+                "cefr": "A2",
+                "translation": "學習 ( [動] 研讀、研究 )",
+                "page": "20",
+                "sentence_en": "He studies environmental science at a top university.",
+                "sentence_zh": "他在一所頂尖大學研究環境科學。"
+            }
+        };
+
+        /**
+         * Parses complex V3 translation formatting into a list of isolated single definitions.
+         * For example: "跑 ( [動] 奔跑、運作；[名] 跑步、運行 )" 
+         * Becomes ["奔跑", "運作", "跑步", "運行", "跑"]
+         */
+        function parseMeanings(translationStr) {
+            if (!translationStr) return ["暫無釋義"];
+            let meaningsList = [];
+            
+            // Look for matching parentheses
+            let mainPart = translationStr;
+            let parenMatch = translationStr.match(/^(.*?)\s*\(\s*(.*?)\s*\)$/);
+            
+            if (parenMatch) {
+                mainPart = parenMatch[1].trim();
+                let detailSegment = parenMatch[2].trim();
+                
+                // Segment by semi-colons
+                let posBlocks = detailSegment.split(/[；;]/);
+                for (let block of posBlocks) {
+                    // Strips the POS tag '[名]', '[動]'
+                    let cleanedBlock = block.replace(/\[[^\]]+\]/g, '').trim();
+                    // Split the words in this block
+                    let words = cleanedBlock.split(/[、,，\s]+/);
+                    for (let w of words) {
+                        let trimmed = w.trim();
+                        if (trimmed && trimmed !== mainPart) {
+                            meaningsList.push(trimmed);
+                        }
+                    }
                 }
-            });
-        }
-    }
-    
-    // ============================================================================
-    // 2. 模式切換邏輯
-    // ============================================================================
-    function switchMode(mode) {
-        if (currentMode === mode) return;
-        currentMode = mode;
-        
-        document.getElementById('btn-quiz-mode').classList.toggle('active', mode === 'quiz');
-        document.getElementById('btn-type-mode').classList.toggle('active', mode === 'type');
-        document.getElementById('btn-cloze-mode').classList.toggle('active', mode === 'cloze');
-        
-        const modeTextMap = { 'quiz': '5選1猜中文', 'type': '拼音聽寫模式', 'cloze': '例句填空模式' };
-        document.getElementById('current-mode-text').innerText = modeTextMap[mode];
-
-        document.getElementById('options-container').style.display = (mode === 'quiz') ? 'flex' : 'none';
-        document.getElementById('typing-container').style.display = (mode === 'quiz') ? 'none' : 'flex';
-        document.getElementById('sentence-box').style.display = (mode === 'cloze') ? 'block' : 'none';
-        
-        inPenaltyMode = false;
-        penaltyCurrentCount = 0;
-        
-        const inputField = document.getElementById('word-input');
-        if (inputField) {
-            inputField.value = "";
-            inputField.className = "typing-input";
-            inputField.placeholder = (mode === 'cloze') ? "請看例句提示，輸入挖空單字..." : "聽音辨字，請輸入完整英文單字";
-        }
-        document.getElementById('typing-feedback').innerText = "";
-        
-        nextQuestion();
-    }
-    
-    // ============================================================================
-    // 3. 出題核心與挖空提示演算法（加入第三模式無例句過濾防線）
-    // ============================================================================
-    function nextQuestion() {
-        if (wordsData.length < 5) return;
-        answerClicked = false;
-        inPenaltyMode = false;
-        
-        let selectedWordObj = null;
-
-        if (currentMode === 'cloze') {
-            // 過濾出真正含有有效英文例句的單字池
-            const validClozePool = wordsData.filter(item => 
-                item.sentence_en && 
-                !item.sentence_en.includes("No example") && 
-                item.sentence_en.trim() !== ""
-            );
-
-            // 防呆：若整個字庫全部都沒有例句，退回全字庫隨機
-            if (validClozePool.length > 0) {
-                const randIndex = Math.floor(Math.random() * validClozePool.length);
-                selectedWordObj = validClozePool[randIndex];
-            } else {
-                const randIndex = Math.floor(Math.random() * wordsData.length);
-                selectedWordObj = wordsData[randIndex];
             }
-        } else {
-            // 模式一與模式二維持全字庫隨機
-            const randIndex = Math.floor(Math.random() * wordsData.length);
-            selectedWordObj = wordsData[randIndex];
+            
+            // Include main translations
+            if (mainPart) {
+                let mainWords = mainPart.split(/[、,，\s]+/);
+                for (let w of mainWords) {
+                    let trimmed = w.trim();
+                    if (trimmed) meaningsList.push(trimmed);
+                }
+            }
+
+            // Remove duplicates
+            meaningsList = [...new Set(meaningsList)].filter(w => w.length > 0);
+            
+            // Fallback
+            if (meaningsList.length === 0) {
+                meaningsList = [translationStr];
+            }
+            return meaningsList;
         }
 
-        currentWordObj = selectedWordObj;
-        const wordClean = currentWordObj.word.trim().toLowerCase();
-        
-        const inputField = document.getElementById('word-input');
-        if (inputField) {
-            inputField.value = "";
-            inputField.className = "typing-input";
-            inputField.disabled = false;
-        }
-        document.getElementById('typing-feedback').innerText = "";
-        
-        if (currentMode === 'quiz') {
-            document.getElementById('target-word').innerText = currentWordObj.word;
-            document.getElementById('hint-display').innerText = `[CEFR: ${currentWordObj.cefr}]`;
-            generateQuizOptions();
-        } 
-        else if (currentMode === 'type') {
-            document.getElementById('target-word').innerText = currentWordObj.translation;
+        /**
+         * Identifies the exact token (word inflection variant) used in the sentence context.
+         * For instance, if base word is 'run', this identifies 'runs', 'running', 'ran' in the sentence.
+         */
+        function findBestMatchInSentence(word, sentence) {
+            if (!sentence || !word) return word;
             
-            let structureHint = generateWordMask(wordClean);
-            document.getElementById('hint-display').innerText = `單字長度: ${wordClean.length} 字元 | 提示: ${structureHint} | [${currentWordObj.cefr}]`;
+            // Strip punctuation and isolate words from sentence
+            let wordsInSentence = sentence.match(/\b[a-zA-Z-]+\b/g) || [];
+            let bestWordMatch = null;
+            let highestMatchingScore = 0;
             
-            setTimeout(() => speakText(currentWordObj.word), 150);
-        } 
-        else if (currentMode === 'cloze') {
-            document.getElementById('target-word').innerText = "例句上下文填空";
-            document.getElementById('hint-display').innerText = `單字釋義：${currentWordObj.translation} | [${currentWordObj.cefr}]`;
+            let baseWordLower = word.toLowerCase();
             
-            const escapedWord = wordClean.replace(/[-\/\\^$*+%.?[\]{}()|]/g, '\\$&');
-            const regexWord = new RegExp('\\b' + escapedWord + '[a-z]*\\b', 'gi');
-            
-            const maskHint = generateWordMask(wordClean);
-            const clozeHtml = `<span class="sentence-cloze">${maskHint}</span>`;
-            
-            document.getElementById('sentence-text-en').innerHTML = currentWordObj.sentence_en.replace(regexWord, clozeHtml);
-            document.getElementById('sentence-text-zh').innerText = currentWordObj.sentence_zh;
-            
-            setTimeout(() => speakText(currentWordObj.sentence_en), 200);
-        }
-    }
-    
-    function generateWordMask(word) {
-        const len = word.length;
-        if (len <= 1) return word;
-        if (len <= 6) {
-            return word[0] + "_".repeat(len - 1);
-        } else {
-            return word[0] + "_".repeat(len - 2) + word[len - 1];
-        }
-    }
-    
-    // ============================================================================
-    // 4. 模式一：5選1選項處理
-    // ============================================================================
-    function generateQuizOptions() {
-        let distractors = [];
-        while (distractors.length < 4) {
-            let randItem = wordsData[Math.floor(Math.random() * wordsData.length)];
-            if (randItem.word.toLowerCase() !== currentWordObj.word.toLowerCase() && !distractors.includes(randItem.translation)) {
-                distractors.push(randItem.translation);
-            }
-        }
-        
-        let options = [
-            { text: currentWordObj.translation, isCorrect: true },
-            ...distractors.map(d => ({ text: d, isCorrect: false }))
-        ];
-        options.sort(() => Math.random() - 0.5);
-        
-        const container = document.getElementById('options-container');
-        container.innerHTML = "";
-        
-        options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt.text;
-            btn.onclick = () => {
-                if (answerClicked) return;
-                answerClicked = true;
-                statsData.totalAnswered++;
+            for (let rawToken of wordsInSentence) {
+                let tokenLower = rawToken.toLowerCase();
+                let score = 0;
                 
-                if (opt.isCorrect) {
-                    btn.classList.add('correct');
-                    logCorrectCEFR(currentWordObj.cefr);
-                    setTimeout(nextQuestion, 500);
+                if (tokenLower === baseWordLower) {
+                    score = 100; // Exact match
+                } else if (tokenLower.startsWith(baseWordLower) || baseWordLower.startsWith(tokenLower)) {
+                    // Checks if they share a common starting root
+                    let commonPrefixLength = 0;
+                    while (commonPrefixLength < Math.min(tokenLower.length, baseWordLower.length) && 
+                           tokenLower[commonPrefixLength] === baseWordLower[commonPrefixLength]) {
+                        commonPrefixLength++;
+                    }
+                    if (commonPrefixLength >= Math.min(3, baseWordLower.length)) {
+                        score = 80 + commonPrefixLength;
+                    }
                 } else {
-                    btn.classList.add('wrong');
-                    logWrongAnswer('quiz');
-                    document.querySelectorAll('.option-btn').forEach(b => {
-                        if (b.innerText === currentWordObj.translation) b.classList.add('correct');
-                    });
-                    setTimeout(nextQuestion, 1500);
+                    // Jaccard similarity metric as a fallback for irregular tenses
+                    let tokenSet = new Set(tokenLower);
+                    let baseSet = new Set(baseWordLower);
+                    let intersection = [...tokenSet].filter(char => baseSet.has(char)).length;
+                    let union = new Set([...tokenSet, ...baseSet]).size;
+                    let jaccard = union > 0 ? (intersection / union) : 0;
+                    
+                    if (tokenLower[0] === baseWordLower[0] && jaccard > 0.45) {
+                        score = 50 + Math.round(jaccard * 25);
+                    }
                 }
-                updateDashboard();
-            };
-            container.appendChild(btn);
-        });
-    }
-    
-    // ============================================================================
-    // 5. 模式二與三：手寫檢驗與 3次處罰機制
-    // ============================================================================
-    function handleTypingOrClozeAnswer() {
-        const inputField = document.getElementById('word-input');
-        const userTyped = inputField.value.trim().toLowerCase();
-        if (userTyped === "") return;
-        
-        const feedback = document.getElementById('typing-feedback');
-        const targetWord = currentWordObj.word.trim().toLowerCase();
-        
-        if (!inPenaltyMode) {
-            if (answerClicked) return;
-            answerClicked = true;
-            statsData.totalAnswered++;
-            
-            if (userTyped === targetWord) {
-                inputField.classList.add('correct');
-                feedback.innerHTML = `<span style="color:#38a169;">➔ 恭喜答對！</span>`;
-                logCorrectCEFR(currentWordObj.cefr);
-                updateDashboard();
-                setTimeout(nextQuestion, 600);
-            } else {
-                logWrongAnswer(currentMode);
-                updateDashboard();
-                startPenaltySession();
-            }
-        } else {
-            if (userTyped === targetWord) {
-                penaltyCurrentCount++;
-                inputField.value = "";
-                inputField.className = "typing-input penalty";
-                speakText(targetWord);
                 
-                if (penaltyCurrentCount >= penaltyRequiredCount) {
-                    feedback.innerHTML = `<span style="color:#38a169;">➔ 罰寫解鎖，跳轉下一題！</span>`;
-                    setTimeout(nextQuestion, 600);
-                } else {
-                    feedback.innerHTML = `<span style="color:#ed8936;">➔ 正確！請再複寫輸入 ${penaltyRequiredCount - penaltyCurrentCount} 次。</span>`;
+                if (score > highestMatchingScore && score > 45) {
+                    highestMatchingScore = score;
+                    bestWordMatch = rawToken;
                 }
-            } else {
-                inputField.value = "";
-                feedback.innerHTML = `<span style="color:#e53e3e;">➔ 拼錯，請精準輸入：<strong style="font-size:20px;">${targetWord}</strong></span>`;
             }
+            
+            return bestWordMatch || word;
         }
-    }
-    
-    function startPenaltySession() {
-        inPenaltyMode = true;
-        penaltyCurrentCount = 0;
-        
-        const inputField = document.getElementById('word-input');
-        inputField.value = "";
-        inputField.className = "typing-input penalty";
-        
-        const feedback = document.getElementById('typing-feedback');
-        feedback.innerHTML = `
-            <span style="color:#e53e3e;">➔ 拼寫錯誤！正確應為：<strong style="font-size:24px; color:#2b6cb0;">${currentWordObj.word}</strong></span>
-            <br><span style="color:#666; font-size:12px;">書本來源: 第 ${currentWordObj.page || '---'} 頁</span>
-            <br><span style="color:#ed8936; font-size:13px; font-weight:bold;">請盲打輸入正確單字 3 次以強化記憶解鎖。</span>
-        `;
-        speakText(currentWordObj.word);
-        inputField.focus();
-    }
-    
-    function handleSkipWord() {
-        if (inPenaltyMode) return;
-        statsData.totalAnswered++;
-        logWrongAnswer(currentMode);
-        updateDashboard();
-        startPenaltySession();
-    }
-    
-    function handleWhisperError() {
-        if (inPenaltyMode || answerClicked) return;
-        answerClicked = true;
-        statsData.totalAnswered++;
-        
-        logWrongAnswer(currentMode, true);
-        
-        const inputField = document.getElementById('word-input');
-        inputField.disabled = true;
-        inputField.className = "typing-input wrong";
-        
-        document.getElementById('typing-feedback').innerHTML = `
-            <span style="color:#c53030;">⚠️ 已記錄音檔報錯（頁碼: ${currentWordObj.page}），正在自動切換...</span>
-        `;
-        updateDashboard();
-        setTimeout(nextQuestion, 1800);
-    }
-    
-    // ============================================================================
-    // 6. 資料庫同步
-    // ============================================================================
-    function logCorrectCEFR(cefrLevel) {
-        if (statsData.correctPool.hasOwnProperty(cefrLevel)) {
-            statsData.correctPool[cefrLevel]++;
+
+        /**
+         * Automatically attempts to fetch local copies during startup
+         */
+        async function attemptAutoFetchDatabase() {
+            const filesToTry = ['words_db_v3.json', 'words_db.json'];
+            
+            for (let fileName of filesToTry) {
+                try {
+                    let response = await fetch(fileName);
+                    if (response.ok) {
+                        let data = await response.json();
+                        if (data && Object.keys(data).length > 0) {
+                            loadDatabase(data, fileName);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // Silent retry
+                }
+            }
+            // If auto-fetch fails, system remains in empty state waiting for user action
         }
-        localStorage.setItem('toeic_v3_stats', JSON.stringify(statsData));
-    }
-    
-    function logWrongAnswer(modeKey, isWhisperError = false) {
-        const wordKey = currentWordObj.word.trim();
-        if (!trackingData[modeKey][wordKey]) {
-            trackingData[modeKey][wordKey] = {
-                translation: currentWordObj.translation,
-                cefr: currentWordObj.cefr,
-                page: currentWordObj.page,
-                wrong_count: 0,
-                whisper_error: false,
-                last_tested: ""
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadDatabase(data, file.name);
+                } catch (err) {
+                    alert('讀取 JSON 發生解析錯誤，請確認檔案結構為有效的 JSON 格式。');
+                }
             };
+            reader.readAsText(file);
         }
-        trackingData[modeKey][wordKey].wrong_count++;
-        if (isWhisperError) trackingData[modeKey][wordKey].whisper_error = true;
-        trackingData[modeKey][wordKey].last_tested = new Date().toISOString();
-        localStorage.setItem('toeic_v3_wrong_track', JSON.stringify(trackingData));
-    }
-    
-    function updateDashboard() {
-        document.getElementById('total-count').innerText = statsData.totalAnswered;
-        const totalCorrectDenominator = Object.values(statsData.correctPool).reduce((a, b) => a + b, 0);
-        const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-        
-        levels.forEach(lvl => {
-            const numerator = statsData.correctPool[lvl];
-            let percentage = totalCorrectDenominator > 0 ? Math.round((numerator / totalCorrectDenominator) * 100) : 0;
-            
-            const labelEl = document.getElementById(`cefr-text-${lvl}`);
-            if (labelEl) labelEl.getElementById ? null : labelEl.innerText = `${lvl} ${numerator}/${totalCorrectDenominator} ${percentage}%`;
-            
-            const barEl = document.getElementById(`cefr-bar-${lvl}`);
-            if (barEl) barEl.style.width = `${percentage}%`;
-        });
-        
-        const totalWrong = Object.keys(trackingData.quiz).length + Object.keys(trackingData.type).length + Object.keys(trackingData.cloze).length;
-        document.getElementById('wrong-vocab-count').innerText = totalWrong;
-    }
-    
-    // ============================================================================
-    // 7. 語音系統
-    // ============================================================================
-    function speakText(text) {
-        if (!text || text.includes("No example")) return;
-        if (synth.speaking) synth.cancel();
-        let utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85;
-        synth.speak(utterance);
-    }
-    
-    function speakCurrentWord() {
-        if (!currentWordObj) return;
-        if (currentMode === 'cloze') {
-            speakText(currentWordObj.sentence_en);
-        } else {
-            speakText(currentWordObj.word);
+
+        function loadMockData() {
+            loadDatabase(MOCK_VOCABULARY_V3, '系統內建展示庫');
         }
-    }
-    
-    function clearAllRecords() {
-        if (confirm("確定要將所有統計數據、CEFR 百分比及錯題本重設清空嗎？")) {
-            localStorage.removeItem('toeic_v3_stats');
-            localStorage.removeItem('toeic_v3_wrong_track');
-            statsData = { totalAnswered: 0, correctPool: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 } };
-            trackingData = { quiz: {}, type: {}, cloze: {} };
+
+        function loadDatabase(data, sourceName) {
+            rawVocabulary = data;
+            
+            // Format to active vocabulary array mapping
+            activeWordsList = Object.keys(rawVocabulary).map(key => {
+                return {
+                    word: key,
+                    cefr: (rawVocabulary[key].cefr || 'B1').toUpperCase(),
+                    translation: rawVocabulary[key].translation || '',
+                    page: rawVocabulary[key].page || '--',
+                    sentence_en: rawVocabulary[key].sentence_en || '',
+                    sentence_zh: rawVocabulary[key].sentence_zh || ''
+                };
+            });
+            
+            // Shuffle
+            shuffleArray(activeWordsList);
+            
+            // Reset statistics counters
+            sessionState.currentIndex = 0;
+            sessionState.correctCount = 0;
+            sessionState.attemptCount = 0;
+            sessionState.wrongMap.clear();
+            Object.keys(sessionState.wrongLevelCounts).forEach(k => sessionState.wrongLevelCounts[k] = 0);
+            Object.keys(sessionState.masteredMap).forEach(k => sessionState.masteredMap[k] = 0);
+            
+            // UI Switch displays
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            
+            // Sync status badge
+            const statusBadge = document.getElementById('db-status');
+            statusBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs font-medium";
+            document.getElementById('db-status-text').textContent = `已載入: ${sourceName} (${activeWordsList.length} 詞)`;
+            
+            // Refresh visuals
             updateDashboard();
-            nextQuestion();
+            renderDatabaseTable();
+            loadCurrentQuestion();
         }
-    }
-</script>
 
+        function switchTab(mode) {
+            sessionState.currentMode = mode;
+            
+            // Refresh navigation buttons styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800";
+            });
+            
+            const activeBtn = document.getElementById(`tab-${mode}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-500/20";
+            }
+            
+            // Hide all panels, open selected
+            document.querySelectorAll('.app-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`pane-${mode}`).classList.remove('hidden');
+            
+            loadCurrentQuestion();
+        }
+
+        function loadCurrentQuestion() {
+            if (activeWordsList.length === 0) return;
+            
+            // Bound safety check
+            if (sessionState.currentIndex >= activeWordsList.length) {
+                sessionState.currentIndex = 0; // wrap around
+                shuffleArray(activeWordsList);
+            }
+            
+            const item = activeWordsList[sessionState.currentIndex];
+            sessionState.lastAnswered = false;
+            
+            // Clear prior feedbacks
+            document.getElementById('flash-feedback').textContent = '';
+            document.getElementById('dict-feedback').textContent = '';
+            document.getElementById('sent-feedback').textContent = '';
+            
+            if (sessionState.currentMode === 'flashcards') {
+                setupFlashcardView(item);
+            } else if (sessionState.currentMode === 'dictation') {
+                setupDictationView(item);
+            } else if (sessionState.currentMode === 'sentences') {
+                setupSentenceView(item);
+            }
+        }
+
+        function setupFlashcardView(item) {
+            // Update counter progress
+            document.getElementById('flash-progress-txt').textContent = `${sessionState.currentIndex + 1} / ${activeWordsList.length}`;
+            
+            // Front Card UI elements
+            const cardEl = document.getElementById('flashcard');
+            cardEl.className = "flashcard-inner w-full h-full relative rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md";
+            
+            const levelBadge = document.getElementById('flash-cefr');
+            levelBadge.textContent = item.cefr;
+            levelBadge.className = `text-xs font-bold text-white px-3.5 py-1.5 rounded-full mb-4 shadow-sm cefr-badge-${item.cefr}`;
+            
+            document.getElementById('flash-en').textContent = item.word;
+            
+            // Back Card UI elements
+            document.getElementById('flash-back-en').textContent = item.word;
+            document.getElementById('flash-translation').textContent = item.translation;
+            document.getElementById('flash-sent-en').textContent = item.sentence_en ? `"${item.sentence_en}"` : '"No example available."';
+            document.getElementById('flash-sent-zh').textContent = item.sentence_zh ? `「${item.sentence_zh}」` : '';
+            
+            // -------------------------------------------------------------
+            // FLASHCARD OPTION GENERATION IMPLEMENTATION (ONLY A SINGLE RANDOM MEANING)
+            // -------------------------------------------------------------
+            const currentMeanings = parseMeanings(item.translation);
+            // Randomly select EXACTLY ONE of the parsed correct meanings as target
+            const correctOption = currentMeanings[Math.floor(Math.random() * currentMeanings.length)];
+            
+            // Gather distractors from other words in dataset
+            let distractors = [];
+            let iterations = 0;
+            while (distractors.length < 3 && iterations < 150) {
+                iterations++;
+                let randIndex = Math.floor(Math.random() * activeWordsList.length);
+                if (randIndex === sessionState.currentIndex) continue;
+                
+                let distractorMeanings = parseMeanings(activeWordsList[randIndex].translation);
+                let randomDistractorMeaning = distractorMeanings[Math.floor(Math.random() * distractorMeanings.length)];
+                
+                if (randomDistractorMeaning && !distractors.includes(randomDistractorMeaning) && randomDistractorMeaning !== correctOption) {
+                    distractors.push(randomDistractorMeaning);
+                }
+            }
+            
+            // Build absolute choices set and randomize keys order
+            let finalChoices = [correctOption, ...distractors];
+            shuffleArray(finalChoices);
+            
+            // Render HTML Choice Buttons
+            const choicesContainer = document.getElementById('flash-options');
+            choicesContainer.innerHTML = '';
+            
+            finalChoices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-50/20 dark:hover:bg-indigo-950/20 hover:scale-[1.01] rounded-2xl text-sm font-semibold transition-all duration-200 flex items-center justify-between";
+                btn.innerHTML = `
+                    <span>${choice}</span>
+                    <span class="material-icons-round text-slate-300 dark:text-slate-700 text-lg">arrow_forward_ios</span>
+                `;
+                btn.onclick = () => submitFlashcardChoice(choice, correctOption, btn);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function flipFlashcard() {
+            document.getElementById('flashcard').classList.toggle('flashcard-flipped');
+        }
+
+        function submitFlashcardChoice(selected, correct, btnElement) {
+            if (sessionState.lastAnswered) return;
+            sessionState.lastAnswered = true;
+            sessionState.attemptCount++;
+            
+            const feedbackEl = document.getElementById('flash-feedback');
+            const item = activeWordsList[sessionState.currentIndex];
+            
+            if (selected === correct) {
+                sessionState.correctCount++;
+                feedbackEl.className = "text-sm font-extrabold text-emerald-500 flex items-center gap-1";
+                feedbackEl.innerHTML = `<span class="material-icons-round">check_circle</span> 正確！點擊單字卡可觀看詳細說明。`;
+                btnElement.className = "w-full text-left p-4 bg-emerald-500 text-white rounded-2xl text-sm font-bold transition-all shadow-md shadow-emerald-500/20";
+                
+                // Track mastery state
+                sessionState.completedWordSet.add(item.word);
+                sessionState.masteredMap[item.cefr] = (sessionState.masteredMap[item.cefr] || 0) + 1;
+            } else {
+                feedbackEl.className = "text-sm font-extrabold text-red-500 flex items-center gap-1";
+                feedbackEl.innerHTML = `<span class="material-icons-round">cancel</span> 答錯了，請點擊單字卡觀看解析！`;
+                btnElement.className = "w-full text-left p-4 bg-red-500 text-white rounded-2xl text-sm font-bold transition-all shadow-md shadow-red-500/20";
+                
+                // Track Incorrect Word Attempt
+                logIncorrectWord(item);
+            }
+            
+            // Visual automatic card reveal flip on choice selection
+            setTimeout(() => {
+                document.getElementById('flashcard').classList.add('flashcard-flipped');
+            }, 600);
+            
+            updateDashboard();
+            
+            // Advance to next word automatically after a review buffer
+            setTimeout(() => {
+                sessionState.currentIndex++;
+                loadCurrentQuestion();
+            }, 3000);
+        }
+
+        function skipFlashcard() {
+            sessionState.currentIndex++;
+            loadCurrentQuestion();
+        }
+
+        function setupDictationView(item) {
+            document.getElementById('dict-progress-txt').textContent = `${sessionState.currentIndex + 1} / ${activeWordsList.length}`;
+            
+            const levelBadge = document.getElementById('dict-cefr');
+            levelBadge.textContent = item.cefr;
+            levelBadge.className = `text-xs font-bold text-white px-3 py-1 rounded-full cefr-badge-${item.cefr}`;
+            
+            // Displays ALL detailed Chinese definitions (滿足拼寫階段要了解多重意思之需求)
+            document.getElementById('dict-all-meanings').textContent = item.translation;
+            
+            // Reset Text Input
+            const inputField = document.getElementById('dict-input');
+            inputField.value = '';
+            inputField.focus();
+        }
+
+        function checkDictationAnswer() {
+            if (sessionState.lastAnswered) return;
+            
+            const userInput = document.getElementById('dict-input').value.trim().toLowerCase();
+            if (!userInput) return;
+            
+            sessionState.lastAnswered = true;
+            sessionState.attemptCount++;
+            
+            const item = activeWordsList[sessionState.currentIndex];
+            const feedbackEl = document.getElementById('dict-feedback');
+            
+            if (userInput === item.word.toLowerCase()) {
+                sessionState.correctCount++;
+                feedbackEl.className = "text-sm font-extrabold text-emerald-500 flex items-center gap-1";
+                feedbackEl.innerHTML = `<span class="material-icons-round">check_circle</span> 拼讀完全正確！音韻與字義完美掌握。`;
+                
+                sessionState.completedWordSet.add(item.word);
+                sessionState.masteredMap[item.cefr] = (sessionState.masteredMap[item.cefr] || 0) + 1;
+                speakCurrentWord();
+            } else {
+                feedbackEl.className = "text-sm font-extrabold text-red-500 flex items-center gap-1";
+                feedbackEl.innerHTML = `<span class="material-icons-round">error</span> 錯誤！ 正確拼法為：<strong class="underline font-bold text-slate-800 dark:text-white select-all ml-1">${item.word}</strong>`;
+                
+                logIncorrectWord(item);
+            }
+            
+            updateDashboard();
+            
+            setTimeout(() => {
+                sessionState.currentIndex++;
+                loadCurrentQuestion();
+            }, 3500);
+        }
+
+        function speakCurrentWord() {
+            if (activeWordsList.length === 0) return;
+            const word = activeWordsList[sessionState.currentIndex].word;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function revealDictationHint() {
+            if (activeWordsList.length === 0) return;
+            const word = activeWordsList[sessionState.currentIndex].word;
+            if (word.length <= 2) {
+                alert(`本單字極短，共有 ${word.length} 個字。`);
+                return;
+            }
+            const hint = `${word[0]}${"_ ".repeat(word.length - 2)}${word[word.length - 1]}`;
+            alert(`單字字母架構提示： ${hint}  (字長: ${word.length} 字元)`);
+        }
+
+        function setupSentenceView(item) {
+            document.getElementById('sent-progress-txt').textContent = `${sessionState.currentIndex + 1} / ${activeWordsList.length}`;
+            
+            const levelBadge = document.getElementById('sent-cefr');
+            levelBadge.textContent = item.cefr;
+            levelBadge.className = `text-xs font-bold text-white px-2.5 py-1 rounded-full cefr-badge-${item.cefr}`;
+            
+            document.getElementById('sent-lemma-hint').textContent = `原形引導：${item.word}`;
+            document.getElementById('sent-translation-zh').textContent = item.sentence_zh ? `句意引導：${item.sentence_zh}` : '';
+            
+            // Clear Input Field
+            document.getElementById('sentence-word-input').value = '';
+            
+            // -------------------------------------------------------------
+            // DYNAMIC BASELINE DETERMINATION USING ADAPTIVE TOKEN MATCHING
+            // -------------------------------------------------------------
+            const sentenceStr = item.sentence_en || "";
+            const matchedWordToken = findBestMatchInSentence(item.word, sentenceStr);
+            
+            // Store target token in DOM dataset for evaluation comparison
+            const inputField = document.getElementById('sentence-word-input');
+            inputField.dataset.targetAnswer = matchedWordToken;
+            inputField.focus();
+            
+            // Construct sentence containing interactive visual gaps matching target string size
+            const container = document.getElementById('sentence-container');
+            container.innerHTML = '';
+            
+            if (!sentenceStr) {
+                container.textContent = "資料庫中本單字尚未配有例句。";
+                return;
+            }
+            
+            // Break down sentence preserving punctuation
+            let escapedToken = matchedWordToken.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            let regex = new RegExp(`\\b(${escapedToken})\\b`, 'i');
+            let sentenceSegments = sentenceStr.split(regex);
+            
+            sentenceSegments.forEach(segment => {
+                if (segment.toLowerCase() === matchedWordToken.toLowerCase()) {
+                    // Create visual inline masked word text
+                    const spanGapped = document.createElement('span');
+                    spanGapped.className = "mx-1.5 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-500 rounded-lg animate-pulse font-extrabold";
+                    spanGapped.textContent = " _____ ";
+                    spanGapped.id = "interactive-gap-indicator";
+                    container.appendChild(spanGapped);
+                } else if (segment) {
+                    const textNode = document.createTextNode(segment);
+                    container.appendChild(textNode);
+                }
+            });
+        }
+
+        function checkSentenceAnswer() {
+            if (sessionState.lastAnswered) return;
+            
+            const inputField = document.getElementById('sentence-word-input');
+            const targetAnswer = inputField.dataset.targetAnswer; // Read verified inflection variant
+            const userInput = inputField.value.trim().toLowerCase();
+            
+            if (!userInput) return;
+            
+            sessionState.lastAnswered = true;
+            sessionState.attemptCount++;
+            
+            const item = activeWordsList[sessionState.currentIndex];
+            const feedbackEl = document.getElementById('sent-feedback');
+            
+            // Reveal correct spelling inside sentence container
+            const gapEl = document.getElementById('interactive-gap-indicator');
+            if (gapEl) {
+                gapEl.textContent = ` ${targetAnswer} `;
+                gapEl.classList.remove('animate-pulse');
+            }
+            
+            if (userInput === targetAnswer.toLowerCase()) {
+                sessionState.correctCount++;
+                feedbackEl.className = "text-sm font-extrabold text-emerald-500 flex items-center gap-1";
+                feedbackEl.innerHTML = `<span class="material-icons-round">check_circle</span> 太棒了！完美契合語境句意與字根時態。`;
+                
+                if (gapEl) {
+                    gapEl.className = "mx-1.5 px-3 py-1 bg-emerald-500 text-white rounded-lg font-black shadow-sm transition-all";
+                }
+                
+                sessionState.completedWordSet.add(item.word);
+                sessionState.masteredMap[item.cefr] = (sessionState.masteredMap[item.cefr] || 0) + 1;
+            } else {
+                feedbackEl.className = "text-sm font-extrabold text-red-500 flex items-center gap-1";
+                feedbackEl.innerHTML = `<span class="material-icons-round">error</span> 格式錯誤！此處的最佳擬合時態應為：<strong class="underline font-bold text-slate-800 dark:text-white select-all ml-1">${targetAnswer}</strong>`;
+                
+                if (gapEl) {
+                    gapEl.className = "mx-1.5 px-3 py-1 bg-red-500 text-white rounded-lg font-black shadow-sm transition-all";
+                }
+                
+                logIncorrectWord(item);
+            }
+            
+            updateDashboard();
+            
+            setTimeout(() => {
+                sessionState.currentIndex++;
+                loadCurrentQuestion();
+            }, 3800);
+        }
+
+        function revealSentenceHint() {
+            const inputField = document.getElementById('sentence-word-input');
+            const targetAnswer = inputField.dataset.targetAnswer;
+            if (!targetAnswer) return;
+            
+            alert(`在該句中單字形式為： 首字母「${targetAnswer[0]}」 , 全字總字長： ${targetAnswer.length} 字元。`);
+        }
+
+        function logIncorrectWord(wordObj) {
+            const wordKey = wordObj.word;
+            let record = sessionState.wrongMap.get(wordKey);
+            
+            if (!record) {
+                record = {
+                    wordObj: wordObj,
+                    failCount: 0,
+                    cefr: wordObj.cefr
+                };
+                sessionState.wrongMap.set(wordKey, record);
+                
+                // Increment CEFR error counter map
+                sessionState.wrongLevelCounts[wordObj.cefr]++;
+            }
+            
+            record.failCount++;
+            updateWrongDistributionUI();
+        }
+
+        /**
+         * Re-renders the graphical chart visualization on the right statistics panel.
+         * Distributes mistakes based on CEFR bands.
+         */
+        function updateWrongDistributionUI() {
+            const container = document.getElementById('wrong-distribution-bars');
+            container.innerHTML = '';
+            
+            const totalErrors = Array.from(sessionState.wrongMap.values()).length;
+            document.getElementById('wrong-count-total').textContent = `${totalErrors} 個錯詞`;
+            
+            const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+            
+            levels.forEach(lvl => {
+                const count = sessionState.wrongLevelCounts[lvl] || 0;
+                // Calculate percentage relative to total unique errors
+                const pct = totalErrors > 0 ? (count / totalErrors) * 100 : 0;
+                
+                const levelBar = document.createElement('div');
+                levelBar.className = "space-y-1.5";
+                levelBar.innerHTML = `
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full cefr-badge-${lvl}"></span>
+                            <span class="text-slate-600 dark:text-slate-300">${lvl} 等級</span>
+                        </span>
+                        <span class="text-slate-400">${count} 詞 (${Math.round(pct)}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-900 rounded-full h-2 overflow-hidden flex">
+                        <div class="h-full rounded-full transition-all duration-500 cefr-badge-${lvl}" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                container.appendChild(levelBar);
+            });
+            
+            // Adjust Review strengthen button capacity text
+            const reviewBtn = document.getElementById('review-btn');
+            reviewBtn.innerHTML = `
+                <span class="material-icons-round text-sm">history_edu</span>
+                <span>進入錯題加強模式 (${totalErrors})</span>
+            `;
+            reviewBtn.disabled = totalErrors === 0;
+            if (totalErrors === 0) {
+                reviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                reviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        /**
+         * Dynamic review sessions. Reconstructs active practicing array from registered errors!
+         */
+        function openReviewSession() {
+            const errors = Array.from(sessionState.wrongMap.values());
+            if (errors.length === 0) return;
+            
+            // Format back to study models
+            activeWordsList = errors.map(e => e.wordObj);
+            shuffleArray(activeWordsList);
+            
+            sessionState.currentIndex = 0;
+            alert(`已成功為您載入 ${activeWordsList.length} 個常錯單字。現在將為您開啟極限強化複習！`);
+            
+            switchTab(sessionState.currentMode);
+        }
+
+        function updateDashboard() {
+            // Calculated values
+            const accuracy = sessionState.attemptCount > 0 
+                ? Math.round((sessionState.correctCount / sessionState.attemptCount) * 100) 
+                : 0;
+                
+            document.getElementById('stat-total-practiced').textContent = sessionState.attemptCount;
+            
+            const accuracyEl = document.getElementById('stat-accuracy');
+            accuracyEl.textContent = `${accuracy}%`;
+            
+            // Color grade accuracy metrics
+            if (accuracy >= 80) {
+                accuracyEl.className = "text-2xl font-black mt-1 text-emerald-500";
+            } else if (accuracy >= 60) {
+                accuracyEl.className = "text-2xl font-black mt-1 text-amber-500";
+            } else {
+                accuracyEl.className = "text-2xl font-black mt-1 text-red-500";
+            }
+
+            // Render Level-based statistics breakdown (答對單字數量統計)
+            const masteryContainer = document.getElementById('cefr-mastery-list');
+            masteryContainer.innerHTML = '';
+            
+            const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+            levels.forEach(lvl => {
+                const count = sessionState.masteredMap[lvl] || 0;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex items-center justify-between text-xs";
+                wrapper.innerHTML = `
+                    <span class="flex items-center space-x-2">
+                        <span class="w-6 py-0.5 rounded text-center font-extrabold text-[10px] text-white cefr-badge-${lvl}">${lvl}</span>
+                        <span class="font-medium text-slate-500 dark:text-slate-400">已掌握：</span>
+                    </span>
+                    <span class="font-extrabold text-slate-800 dark:text-white">${count} 個</span>
+                `;
+                masteryContainer.appendChild(wrapper);
+            });
+            
+            updateWrongDistributionUI();
+        }
+
+        function renderDatabaseTable() {
+            const tbody = document.getElementById('db-tbody');
+            tbody.innerHTML = '';
+            
+            const searchQuery = document.getElementById('db-search').value.toLowerCase().trim();
+            
+            // Render filter mapping
+            const dbList = Object.keys(rawVocabulary).map(key => {
+                return {
+                    word: key,
+                    cefr: (rawVocabulary[key].cefr || 'B1').toUpperCase(),
+                    translation: rawVocabulary[key].translation || '',
+                    page: rawVocabulary[key].page || '--'
+                };
+            });
+            
+            const filtered = dbList.filter(item => {
+                // Apply CEFR Filter
+                if (filteredLevel !== 'ALL' && item.cefr !== filteredLevel) return false;
+                
+                // Apply Search Query
+                if (searchQuery) {
+                    return item.word.toLowerCase().includes(searchQuery) || 
+                           item.translation.toLowerCase().includes(searchQuery);
+                }
+                return true;
+            });
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="p-8 text-center text-slate-400 font-medium italic">
+                            查無符合條件的單字資料。
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-3.5">
+                        <span class="px-2 py-0.5 rounded text-xs font-extrabold text-white cefr-badge-${item.cefr}">${item.cefr}</span>
+                    </td>
+                    <td class="p-3.5 font-bold tracking-wide text-slate-800 dark:text-white">${item.word}</td>
+                    <td class="p-3.5 text-slate-600 dark:text-slate-300 font-medium">${item.translation}</td>
+                    <td class="p-3.5 text-slate-400 dark:text-slate-500 font-semibold text-xs">${item.page}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterLevel(level) {
+            filteredLevel = level;
+            
+            // Adjust visual filters active indicators
+            document.querySelectorAll('.lvl-filter-btn').forEach(btn => {
+                if (btn.textContent === level || (level === 'ALL' && btn.textContent === '全部')) {
+                    btn.className = "lvl-filter-btn px-3.5 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm";
+                } else {
+                    btn.className = "lvl-filter-btn px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold transition-all hover:bg-slate-200 text-slate-600 dark:text-slate-300";
+                }
+            });
+            
+            renderDatabaseTable();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function toggleDarkMode() {
+            const htmlClass = document.documentElement.classList;
+            const icon = document.getElementById('theme-icon');
+            
+            if (htmlClass.contains('dark')) {
+                htmlClass.remove('dark');
+                icon.textContent = 'dark_mode';
+                localStorage.theme = 'light';
+            } else {
+                htmlClass.add('dark');
+                icon.textContent = 'light_mode';
+                localStorage.theme = 'dark';
+            }
+        }
+
+        // Initialize theme and trigger local directory discovery auto-fetch on load
+        (function init() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = 'light_mode';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').textContent = 'dark_mode';
+            }
+            
+            attemptAutoFetchDatabase();
+        })();
+    </script>
 </body>
 </html>
